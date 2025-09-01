@@ -3,7 +3,6 @@ package com.ecommerce.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +23,6 @@ public class CartService {
     private final ProductService productService;
     private final UserService userService;
 
-    @Autowired
     public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductService productService, UserService userService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
