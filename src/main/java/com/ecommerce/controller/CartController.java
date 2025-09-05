@@ -23,11 +23,10 @@ public class CartController {
     }
 
     @PostMapping("/{cartId}/add-product")
-    public ResponseEntity<CartItemDTO> addProductToCart(@PathVariable Long cartId, @RequestParam(defaultValue = "1") Long productId, @RequestParam int quantity) {
+    public ResponseEntity<CartItemDTO> addProductToCart(@PathVariable Long cartId, @RequestParam Long productId, @RequestParam(defaultValue = "1") int quantity) {
         return this.cartService.addProductToCart(cartId, productId, quantity).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // revisar
     @GetMapping("/{userId}")
     public ResponseEntity<CartDTO> getCartByUserId(@PathVariable Long userId) {
         return this.cartService.getCartDTOByUserId(userId).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
