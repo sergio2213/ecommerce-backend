@@ -31,6 +31,7 @@ public class SecurityConfig {
                 authorize -> authorize
                     .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products").authenticated()
+                    .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/products").permitAll() // temporal
                     .requestMatchers(HttpMethod.POST, "/api/carts/add-product").authenticated()
                     .requestMatchers("/h2-console/**").permitAll()
