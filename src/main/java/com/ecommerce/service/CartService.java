@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -51,29 +52,25 @@ public class CartService {
     @Transactional
     public Optional<CartItemDTO> addProductToCart(Long cartId, Long productId, int quantity) {
         Optional<Cart> optionalCart = this.cartRepository.findById(cartId);
+        Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found with id: " + cartId));
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
-        if(optionalCart.isPresent() && optionalProduct.isPresent()) {
-            Cart cart = optionalCart.get();
-            Product product = optionalProduct.get();
-            Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cartId, productId);
-            if(optionalCartItem.isPresent()) {
-                // existe el producto en el carrito
-                CartItem existingItem = optionalCartItem.get();
-                existingItem.setQuantity(existingItem.getQuantity() + quantity);
-                CartItem updatedCartItem = this.cartItemRepository.save(existingItem);
-                return Optional.of(convertToDto(updatedCartItem));
-            } else {
-                // no existe el producto en el carrito
-                CartItem newItem = new CartItem();
-                newItem.setCart(cart);
-                newItem.setProduct(product);
-                newItem.setQuantity(quantity);
-                CartItem updatedCartItem = this.cartItemRepository.save(newItem);
-                return Optional.of(convertToDto(updatedCartItem));
-            }
+        Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
+        CartItem savedItem;
+        Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cartId, productId);
+        if(optionalCartItem.isPresent()) {
+            // existe el producto en el carrito
+            CartItem existingItem = optionalCartItem.get();
+            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            savedItem = this.cartItemRepository.save(existingItem);
+        } else {
+            // no existe el producto en el carrito
+            CartItem newItem = new CartItem();
+            newItem.setCart(cart);
+            newItem.setProduct(product);
+            newItem.setQuantity(quantity);
+            savedItem = this.cartItemRepository.save(newItem);
         }
-        // si el carrito o el producto no se encuentran
-        return Optional.empty();
+        return Optional.of(convertToCartItemDTO(savedItem));
     }
 
     public CartItemDTO convertToDto(CartItem cartItem) {
