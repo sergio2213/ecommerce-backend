@@ -29,6 +29,8 @@ public class SecurityConfig {
             .csrf(c -> c.disable())
             .authorizeHttpRequests(
                 authorize -> authorize
+                    .requestMatchers(HttpMethod.POST, "/api/orders/checkout").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").authenticated()

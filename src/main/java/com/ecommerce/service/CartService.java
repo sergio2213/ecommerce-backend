@@ -87,8 +87,8 @@ public class CartService {
         return this.cartRepository.save(cart);
     }
 
-    public Optional<Cart> getCartById(Long id) {
-        return this.cartRepository.findById(id);
+    public Optional<Cart> getCartByUserId(Long userId) {
+        return this.cartRepository.findById(userId);
     }
 
     public Optional<CartDTO> getCartDTOByUserId(Long userId) {
@@ -114,4 +114,8 @@ public class CartService {
         return dto;
     }
 
+    @Transactional
+    public void clearCartItems(Long cartId) {
+        this.cartItemRepository.deleteAll(this.cartItemRepository.findByCartId(cartId));
+    }
 }
