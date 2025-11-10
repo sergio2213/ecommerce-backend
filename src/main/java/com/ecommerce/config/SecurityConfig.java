@@ -29,9 +29,13 @@ public class SecurityConfig {
             .csrf(c -> c.disable())
             .authorizeHttpRequests(
                 authorize -> authorize
+                    // endpoints públicos
+                    .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                    // endpoints de admin
+                    .requestMatchers("/api/products/admin/**").hasRole("ADMIN")
+                    // endpoints de usuario
                     .requestMatchers(HttpMethod.POST, "/api/orders/checkout").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/products").permitAll() // temporal

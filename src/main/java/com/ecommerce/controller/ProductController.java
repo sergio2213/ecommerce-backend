@@ -19,8 +19,12 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @PostMapping
+    // endpoint de administración
+    @PostMapping("/admin/new")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+        if (product.getStock() == null) {
+            product.setStock(0);
+        }
         Product savedProduct = this.productService.saveProduct(product);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }

@@ -1,6 +1,6 @@
 package com.ecommerce.security;
 
-import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,11 +24,12 @@ public class JpaUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = this.userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Username not found with username: " + username));
-        SimpleGrantedAuthority userRole = new SimpleGrantedAuthority("ROLE_USER");
         return new org.springframework.security.core.userdetails.User(
             user.getUsername(),
             user.getPassword(),
-            Collections.singletonList(userRole)
+            user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toSet())
         );
     }
 
