@@ -1,7 +1,11 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.model.Product;
 import com.ecommerce.service.ProductService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +25,9 @@ public class ProductController {
 
     // endpoint de administración
     @PostMapping("/admin/new")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        if (product.getStock() == null) {
-            product.setStock(0);
-        }
-        Product savedProduct = this.productService.saveProduct(product);
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
+        Product newProduct = this.productService.convertoToEntity(productInputDTO);
+        Product savedProduct = this.productService.saveProduct(newProduct);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 

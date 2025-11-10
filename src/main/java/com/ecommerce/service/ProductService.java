@@ -1,5 +1,6 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.model.Product;
 import com.ecommerce.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,14 @@ public class ProductService {
 
     public void deleteProduct(Long id) {
         this.productRepository.deleteById(id);
+    }
+
+    public Product convertoToEntity(ProductInputDTO dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
+        return product;
     }
 }
