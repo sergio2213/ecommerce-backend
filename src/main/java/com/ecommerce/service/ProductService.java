@@ -6,6 +6,7 @@ import com.ecommerce.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -29,18 +30,19 @@ public class ProductService {
         return this.productRepository.findById(id);
     }
 
-    // ver si se puede mejorar
-    public Optional<Product> updateProduct(Long id, Product updatedProduct) {
-        return this.productRepository.findById(id).map(product -> {
-            product.setName(updatedProduct.getName());
-            product.setDescription(updatedProduct.getDescription());
-            product.setPrice(updatedProduct.getPrice());
-            product.setStock(updatedProduct.getStock());
-            return this.productRepository.save(product);
-        });
+    public Product updateProduct(Long id, ProductInputDTO dto) {
+        Product existingProduct = this.productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found with ID: " + id));
+        existingProduct.setName(dto.getName());
+        existingProduct.setDescription(dto.getDescription());
+        existingProduct.setPrice(dto.getPrice());
+        existingProduct.setStock(dto.getStock());
+        return this.productRepository.save(existingProduct);
     }
 
     public void deleteProduct(Long id) {
+        if (!this.productRepository.existsById(id)) {
+            throw new NoSuchElementException("Product not found with ID: " + id);
+        }
         this.productRepository.deleteById(id);
     }
 

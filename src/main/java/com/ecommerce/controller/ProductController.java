@@ -43,13 +43,15 @@ public class ProductController {
         return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updatedProduct) {
-        Optional<Product> product = this.productService.updateProduct(id, updatedProduct);
-        return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    // endpoint de administración
+    @PutMapping("/admin/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductInputDTO dto) {
+        Product updatedProduct = this.productService.updateProduct(id, dto);
+        return ResponseEntity.ok(updatedProduct);
     }
 
-    @DeleteMapping("/{id}")
+    // endpoint de administración
+    @DeleteMapping("/admin/{id}")
     public ResponseEntity<Product> deleteProduct(@PathVariable Long id) {
         this.productService.deleteProduct(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
