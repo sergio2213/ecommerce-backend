@@ -29,20 +29,20 @@ public class SecurityConfig {
             .csrf(c -> c.disable())
             .authorizeHttpRequests(
                 authorize -> authorize
-                    // endpoints públicos
-                    .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                     // endpoints de admin
                     .requestMatchers("/api/products/admin/**").hasRole("ADMIN")
-                    // endpoints de usuario
-                    .requestMatchers(HttpMethod.POST, "/api/orders/checkout").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
+                    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
+                    // endpoints públicos (no requieren autenticación)
+                    .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                    .requestMatchers("/h2-console/**").permitAll() // solo para desarrollo
+                    // endpoints de usuario (requieren autenticación)
                     .requestMatchers(HttpMethod.GET, "/api/products").authenticated()
-                    .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/products").permitAll() // temporal
+                    .requestMatchers(HttpMethod.GET, "/api/carts").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/carts/add-product").authenticated()
-                    .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/**").authenticated()
-                    .anyRequest().denyAll()
+                    .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/api/orders/checkout").authenticated()
+                    // cualquier otra solicitud requiere autenticación
+                    .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults())
             .headers(headers -> headers.frameOptions(t -> t.disable()));

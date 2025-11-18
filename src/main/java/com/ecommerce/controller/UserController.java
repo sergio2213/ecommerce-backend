@@ -4,6 +4,12 @@ import com.ecommerce.dto.UserDTO;
 import com.ecommerce.model.User;
 import com.ecommerce.service.CartService;
 import com.ecommerce.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(
+    name = "Usuarios",
+    description = "Gestión de registro y autenticación de usuarios"
+)
 public class UserController {
 
     private final UserService userService;
@@ -23,6 +33,14 @@ public class UserController {
         this.cartService = cartService;
     }
 
+    @Operation(
+        summary = "Registrar un nuevo usuario",
+        description = "Crea un nuevo usuario con rol ROLE_USER y un carrito asociado. No quiere autenticación."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@RequestBody User user) {
         User savedUser = this.userService.saveUser(user);

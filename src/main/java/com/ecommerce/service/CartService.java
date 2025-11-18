@@ -55,6 +55,13 @@ public class CartService {
         Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found with id: " + cartId));
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
+        // verificar el stock del producto
+        if (product.getStock() == 0) {
+            throw new IllegalStateException("Product is out of stock");
+        }
+        if (product.getStock() < quantity) {
+            throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+        }
         CartItem savedItem;
         Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cartId, productId);
         if(optionalCartItem.isPresent()) {
