@@ -1,6 +1,5 @@
 package com.ecommerce.service;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -9,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.dto.CartDTO;
 import com.ecommerce.dto.CartItemDTO;
+import com.ecommerce.mapper.CartItemMapper;
+import com.ecommerce.mapper.CartMapper;
 import com.ecommerce.model.Cart;
 import com.ecommerce.model.CartItem;
 import com.ecommerce.model.Product;
@@ -22,13 +23,15 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductService productService;
-    private final UserService userService;
+    private final CartMapper cartMapper;
+    private final CartItemMapper cartItemMapper;
 
-    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductService productService, UserService userService) {
+    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductService productService, CartMapper cartMapper, CartItemMapper cartItemMapper) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productService = productService;
-        this.userService = userService;
+        this.cartMapper = cartMapper;
+        this.cartItemMapper = cartItemMapper;
     }
 
     public Cart getOrCreateCartByUserId(Long userId) {
@@ -77,17 +80,7 @@ public class CartService {
             newItem.setQuantity(quantity);
             savedItem = this.cartItemRepository.save(newItem);
         }
-        return Optional.of(convertToCartItemDTO(savedItem));
-    }
-
-    public CartItemDTO convertToDto(CartItem cartItem) {
-        CartItemDTO dto = new CartItemDTO();
-        dto.setId(cartItem.getId());
-        dto.setProductId(cartItem.getProduct().getId());
-        dto.setProductName(cartItem.getProduct().getName());
-        dto.setProductPrice(cartItem.getProduct().getPrice());
-        dto.setQuantity(cartItem.getQuantity());
-        return dto;
+        return Optional.of(this.cartItemMapper.toCartItemDto(savedItem));
     }
 
     public Cart saveCart(Cart cart) {
@@ -99,26 +92,11 @@ public class CartService {
     }
 
     public Optional<CartDTO> getCartDTOByUserId(Long userId) {
-        return this.cartRepository.findByUserId(userId).map(this::convertToCartDTO);
+        return this.cartRepository.findByUserId(userId).map(this::toCartDto);
     }
 
-    public CartDTO convertToCartDTO(Cart cart) {
-        CartDTO dto = new CartDTO();
-        dto.setId(cart.getId());
-        dto.setUser(userService.convertToUserDTO(cart.getUser()));
-        List<CartItemDTO> itemsDTOs = cart.getCartItems().stream().map(this::convertToCartItemDTO).toList();
-        dto.setCartItems(itemsDTOs);
-        return dto;
-    }
-
-    public CartItemDTO convertToCartItemDTO(CartItem cartItem) {
-        CartItemDTO dto = new CartItemDTO();
-        dto.setId(cartItem.getId());
-        dto.setProductId(cartItem.getProduct().getId());
-        dto.setProductName(cartItem.getProduct().getName());
-        dto.setProductPrice(cartItem.getProduct().getPrice());
-        dto.setQuantity(cartItem.getQuantity());
-        return dto;
+    public CartDTO toCartDto(Cart cart) {
+        return this.cartMapper.toCartDto(cart);
     }
 
     @Transactional

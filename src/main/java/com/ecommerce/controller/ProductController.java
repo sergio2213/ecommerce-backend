@@ -45,8 +45,7 @@ public class ProductController {
     })
     @PostMapping("/admin/new")
     public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
-        Product newProduct = this.productService.convertoToEntity(productInputDTO);
-        Product savedProduct = this.productService.saveProduct(newProduct);
+        Product savedProduct = this.productService.createProduct(productInputDTO);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 

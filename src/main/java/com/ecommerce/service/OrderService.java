@@ -1,6 +1,5 @@
 package com.ecommerce.service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.dto.OrderDTO;
-import com.ecommerce.dto.OrderItemDTO;
+import com.ecommerce.mapper.OrderMapper;
 import com.ecommerce.model.Cart;
 import com.ecommerce.model.CartItem;
 import com.ecommerce.model.Order;
@@ -28,14 +27,16 @@ public class OrderService {
     private CartService cartService;
     private ProductService productService;
     private OrderRepository orderRepository;
+    private OrderMapper orderMapper;
     private OrderItemRepository orderItemRepository;
 
-    public OrderService(UserService userService, CartService cartService, ProductService productService, OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    public OrderService(UserService userService, CartService cartService, ProductService productService, OrderRepository orderRepository, OrderMapper orderMapper, OrderItemRepository orderItemRepository) {
         this.userService = userService;
         this.cartService = cartService;
         this.productService = productService;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.orderMapper = orderMapper;
     }
 
     @Transactional
@@ -91,34 +92,13 @@ public class OrderService {
         return this.orderRepository.findByUserId(userId);
     }
 
-    private OrderItemDTO convertToOrderItemDTO(OrderItem orderItem) {
-        OrderItemDTO dto = new OrderItemDTO();
-        dto.setProductId(orderItem.getProduct().getId());
-        dto.setProductName(orderItem.getProduct().getName());
-        dto.setQuantity(orderItem.getQuantity());
-        dto.setPriceAtPurchase(orderItem.getPriceAtPurchase());
-        return dto;
-    }
-
-    public OrderDTO convertToOrderDTO(Order order) {
-        OrderDTO dto = new OrderDTO();
-        dto.setId(order.getId());
-        dto.setOrderDate(order.getOrderDate());
-        dto.setStatus(order.getStatus());
-        List<OrderItemDTO> itemsDTO = order.getOrderItems().stream()
-            .map(item -> convertToOrderItemDTO(item))
-            .toList();
-        dto.setItems(itemsDTO);
-        BigDecimal totalAmount = order.getOrderItems().stream()
-            .map(item -> item.getPriceAtPurchase().multiply(new BigDecimal(item.getQuantity())))
-            .reduce(BigDecimal.ZERO, (acc, elem) -> acc.add(elem));
-        dto.setTotalAmount(totalAmount);
-        return dto;
+    public OrderDTO toOrderDto(Order order) {
+        return this.orderMapper.toOrderDto(order);
     }
 
     public List<OrderDTO> getOrdersDTOByUserId(Long userId) {
         return this.orderRepository.findByUserId(userId).stream()
-            .map(order -> convertToOrderDTO(order))
+            .map(order -> toOrderDto(order))
             .toList();
     }
 }

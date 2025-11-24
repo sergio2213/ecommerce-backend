@@ -54,7 +54,7 @@ public class OrderController {
         Long userId = this.userService.getUserByUsername(principal.getName())
             .orElseThrow(() -> new NoSuchElementException("User not found")).getId();
         Order newOrder = this.orderService.placeOrder(userId);
-        OrderDTO newOrderDTO = this.orderService.convertToOrderDTO(newOrder);
+        OrderDTO newOrderDTO = this.orderService.toOrderDto(newOrder);
         return new ResponseEntity<>(newOrderDTO, HttpStatus.CREATED);
     }
 

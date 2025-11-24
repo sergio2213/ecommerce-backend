@@ -45,6 +45,6 @@ public class UserController {
     public ResponseEntity<UserDTO> registerUser(@RequestBody User user) {
         User savedUser = this.userService.saveUser(user);
         this.cartService.createCartForUser(savedUser);
-        return new ResponseEntity<>(userService.convertToUserDTO(savedUser), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.toUserDto(savedUser), HttpStatus.CREATED);
     }
 }

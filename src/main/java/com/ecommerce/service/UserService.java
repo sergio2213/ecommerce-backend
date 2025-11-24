@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.dto.UserDTO;
+import com.ecommerce.mapper.UserMapper;
 import com.ecommerce.model.Role;
 import com.ecommerce.model.User;
 import com.ecommerce.repository.RoleRepository;
@@ -11,20 +12,20 @@ import com.ecommerce.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     public User saveUser(User user) {
@@ -43,15 +44,7 @@ public class UserService {
         return this.userRepository.findByUsername(username);
     }
 
-    public UserDTO convertToUserDTO(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        Set<String> roleNames = user.getRoles().stream()
-            .map(role -> role.getName())
-            .collect(Collectors.toSet());
-        dto.setRoles(roleNames);
-        return dto;
+    public UserDTO toUserDto(User user) {
+        return this.userMapper.toUserDto(user);
     }
 }
