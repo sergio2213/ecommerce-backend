@@ -12,4 +12,5 @@ import com.ecommerce.model.CartItem;
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByCartIdAndProductId(Long cartId, Long productId);
     List<CartItem> findByCartId(Long cartId);
+    long countByCartId(Long cartId);
 }
