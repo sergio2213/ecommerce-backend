@@ -29,7 +29,10 @@ import com.ecommerce.model.Cart;
 import com.ecommerce.model.Product;
 import com.ecommerce.model.Role;
 import com.ecommerce.model.User;
+import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.CartRepository;
+import com.ecommerce.repository.OrderItemRepository;
+import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.repository.UserRepository;
@@ -61,6 +64,15 @@ public class ProductIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
+    @Autowired
+    private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
     private static final String ADMIN_URL = "/api/products/admin";
     private static final String USER_URL = "/api/products";
 
@@ -71,10 +83,13 @@ public class ProductIntegrationTest {
 
     @BeforeEach
     void clear() {
-        this.cartRepository.deleteAll();
-        this.productRepository.deleteAll();
-        this.userRepository.deleteAll();
-        this.roleRepository.deleteAll();
+        this.orderItemRepository.deleteAllInBatch();
+        this.orderRepository.deleteAllInBatch();
+        this.cartItemRepository.deleteAllInBatch();
+        this.cartRepository.deleteAllInBatch();
+        this.productRepository.deleteAllInBatch();
+        this.userRepository.deleteAllInBatch();
+        this.roleRepository.deleteAllInBatch();
 
 
         Role userRole = this.roleRepository.save(new Role(null, "ROLE_USER"));
@@ -86,6 +101,8 @@ public class ProductIntegrationTest {
         user.setPassword(this.passwordEncoder.encode(RAW_PASSWORD));
         user.setEmail("user@email.com");
         user.setRoles(Set.of(userRole));
+        this.userRepository.save(user);
+
         Cart userCart = new Cart();
         userCart.setUser(user);
         this.cartRepository.save(userCart);
@@ -96,6 +113,8 @@ public class ProductIntegrationTest {
         admin.setPassword(this.passwordEncoder.encode(RAW_PASSWORD));
         admin.setEmail("admin@email.com");
         admin.setRoles(Set.of(adminRole));
+        this.userRepository.save(admin);
+
         Cart adminCart = new Cart();
         adminCart.setUser(admin);
         this.cartRepository.save(adminCart);
