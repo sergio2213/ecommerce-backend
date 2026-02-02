@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,18 +69,17 @@ public class OrderIntegrationTest {
     private final String USERNAME = "user_normal"; 
     private final String PASSWORD = "12345";
 
-    private Long productId;
     private final int INITIAL_STOCK = 10;
     private final int PURCHASE_QUANTITY = 3;
 
     @BeforeEach
     void setUp() {
-        this.orderRepository.deleteAll();
-        this.cartItemRepository.deleteAll();
-        this.cartRepository.deleteAll();
-        this.productRepository.deleteAll();
-        this.userRepository.deleteAll();
-        this.roleRepository.deleteAll();
+        this.orderRepository.deleteAllInBatch();
+        this.cartItemRepository.deleteAllInBatch();
+        this.cartRepository.deleteAllInBatch();
+        this.productRepository.deleteAllInBatch();
+        this.userRepository.deleteAllInBatch();
+        this.roleRepository.deleteAllInBatch();
 
         Role userRole = this.roleRepository.findByName("ROLE_USER").orElseGet(
             () -> this.roleRepository.save(new Role(null, "ROLE_USER"))
@@ -91,26 +89,17 @@ public class OrderIntegrationTest {
         user.setPassword(this.passwordEncoder.encode(PASSWORD));
         user.setEmail("test@test.com");
         user.setRoles(Set.of(userRole));
+        this.userRepository.save(user);
         
         Cart cart = new Cart();
         cart.setUser(user);
-        // el usuario se va a persistir en cascada al guardar el carrito
         this.cartRepository.save(cart);
-    }
-
-    @AfterEach
-    void clear() {
-        this.orderRepository.deleteAll();
-        this.cartItemRepository.deleteAll();
-        this.cartRepository.deleteAll();
-        this.productRepository.deleteAll();
-        this.userRepository.deleteAll();
     }
 
     @Test
     void placeOrder_Success_CreatesOrderAndUpdatesStock() {
         Product product = createTestProduct("Order Test Product", INITIAL_STOCK);
-        this.productId = product.getId();
+        Long productId = product.getId();
 
         addProductToCart(productId, PURCHASE_QUANTITY);
 
@@ -123,7 +112,7 @@ public class OrderIntegrationTest {
         OrderDTO createdOrder = response.getBody();
         assertNotNull(createdOrder.getId(), "La order creada debe tener un ID");
         // verificar que el stock del producto se haya actualizado
-        Product updatedProduct = this.productRepository.findById(this.productId).orElseThrow();
+        Product updatedProduct = this.productRepository.findById(productId).orElseThrow();
         int expectedStock = 7; // stock inicial 10 - cantidad comprada 3
         assertEquals(expectedStock, updatedProduct.getStock(), "El stock de la base de datos debe haberse actualizado correctamente.");
 
@@ -138,11 +127,11 @@ public class OrderIntegrationTest {
     void placeOrder_Failure_InsufficientStockRollback() {
 
         Product product = createTestProduct("Sony PlayStation 5", INITIAL_STOCK);
-        this.productId = product.getId();
+        Long productId = product.getId();
         // creamos un carrito con una cantidad correcta
         addProductToCart(productId, 5);
         // cambiamos el stock a 3 (no llega a 5)
-        Product productToUpdate = this.productRepository.findById(this.productId).orElseThrow();
+        Product productToUpdate = this.productRepository.findById(productId).orElseThrow();
         productToUpdate.setStock(3);
         this.productRepository.save(productToUpdate);
         // cuando se intente hacer checkout, debe fallar por stock insuficiente
@@ -152,7 +141,7 @@ public class OrderIntegrationTest {
         // verificación del rollback
         assertEquals(0, this.orderRepository.count(), "No debería haberse guardado ninguna orden debido al rollback");
 
-        Product finalProduct = this.productRepository.findById(this.productId).orElseThrow();
+        Product finalProduct = this.productRepository.findById(productId).orElseThrow();
         assertEquals(3, finalProduct.getStock(), "El stock debe permanecer en 3");
     }
 
