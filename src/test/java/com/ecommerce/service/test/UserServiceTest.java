@@ -45,11 +45,11 @@ public class UserServiceTest {
         String rawPassword = "password123";
         String encodedPassword = "encoded_password_simulated_for_test";
         
-        User userToSave = new User(null, "testuser", "email@email.com", rawPassword, null);
+        User userToSave = new User(null, "testuser", "email@email.com", rawPassword, null, null);
 
         Role mockRole = new Role(1L, "ROLE_USER");
 
-        User userSaved = new User(1L, "testuser", "email@email.com" , encodedPassword, Collections.singleton(mockRole));
+        User userSaved = new User(1L, "testuser", "email@email.com" , encodedPassword, null, Collections.singleton(mockRole));
 
         when(this.passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
 
@@ -79,7 +79,7 @@ public class UserServiceTest {
         String rawPassword = "password123";
         String encodedPassword = "encoded_password_simulated_for_test";
 
-        User userToSave = new User(null, "testuser", "email@email.com", rawPassword, null);
+        User userToSave = new User(null, "testuser", "email@email.com", rawPassword, null, null);
 
         when(this.passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
 
