@@ -12,7 +12,6 @@ import lombok.Data;
 public class ProductInputDTO {
     @NotBlank(message = "Name is mandatory")
     private String name;
-    @NotBlank(message = "Description is mandatory")
     private String description;
     @NotNull(message = "Price is mandatory")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than zero")
