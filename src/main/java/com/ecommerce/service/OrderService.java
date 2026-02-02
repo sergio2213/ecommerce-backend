@@ -41,17 +41,11 @@ public class OrderService {
 
     @Transactional
     public Order placeOrder(Long userId) {
-        // obtener el usuario
         User user = this.userService.getUserById(userId).orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
-
-        // obtener el carrito del usuario
         Cart cart = this.cartService.getCartByUserId(userId).orElseThrow(() -> new NoSuchElementException("Cart not found for user id: " + userId));
-
         if (cart.getCartItems().isEmpty()) {
             throw new IllegalStateException("Cannot place order with empty cart for user id: " + userId);
         }
-
-        // crear la order
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
@@ -59,31 +53,23 @@ public class OrderService {
         if (order.getOrderItems() == null) {
             order.setOrderItems(new ArrayList<>());
         }
-        // no debería estar acá
         Order savedOrder = this.orderRepository.save(order);
-        // crear los items de la order a partir de los items del carrito, actualizar el stock y limpiar el carrito
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
-            // verificar stock
             if (product.getStock() < cartItem.getQuantity()) {
                 throw new IllegalStateException("Insufficient stock for product id: " + product.getId());
             }
-            // crear OrderItem
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(savedOrder);
             orderItem.setProduct(product);
             orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setPriceAtPurchase(product.getPrice());
             this.orderItemRepository.save(orderItem);
-            // actualizar stock del producto
             product.setStock(product.getStock() - cartItem.getQuantity());
             this.productService.saveProduct(product);
-            // guardar el orderItem en la lista
             savedOrder.getOrderItems().add(orderItem);
         }
-        // limpiar el carrito
         this.cartService.clearCartItems(cart.getId());
-        // sincronizar el carrito en memoria
         cart.getCartItems().clear();
         return savedOrder; 
     }
