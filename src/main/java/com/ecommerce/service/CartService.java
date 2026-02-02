@@ -34,18 +34,6 @@ public class CartService {
         this.cartItemMapper = cartItemMapper;
     }
 
-    public Cart getOrCreateCartByUserId(Long userId) {
-        return this.cartRepository.findByUserId(userId).orElseGet(() -> {
-            // creamos un usuario de ejemplo
-            User user = new User();
-            user.setId(userId);
-            // también un carrito para dicho usuario
-            Cart newCart = new Cart();
-            newCart.setUser(user);
-            return this.cartRepository.save(newCart);
-        });
-    }
-
     public Cart createCartForUser(User user) {
         Cart newCart = new Cart();
         newCart.setUser(user);
@@ -58,7 +46,6 @@ public class CartService {
         Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found with id: " + cartId));
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
-        // verificar el stock del producto
         if (product.getStock() == 0) {
             throw new IllegalStateException("Product is out of stock");
         }
@@ -68,12 +55,10 @@ public class CartService {
         CartItem savedItem;
         Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cartId, productId);
         if(optionalCartItem.isPresent()) {
-            // existe el producto en el carrito
             CartItem existingItem = optionalCartItem.get();
             existingItem.setQuantity(existingItem.getQuantity() + quantity);
             savedItem = this.cartItemRepository.save(existingItem);
         } else {
-            // no existe el producto en el carrito
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setProduct(product);
