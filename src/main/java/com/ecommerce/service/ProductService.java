@@ -5,6 +5,7 @@ import com.ecommerce.mapper.ProductMapper;
 import com.ecommerce.model.Product;
 import com.ecommerce.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -45,6 +46,7 @@ public class ProductService {
         return this.productRepository.save(newProduct);
     }
 
+    @Transactional
     public Product updateProduct(Long productId, ProductInputDTO dto) {
         Product existingProduct = this.productRepository.findById(productId).orElseThrow(() -> new NoSuchElementException("Product not found with ID: " + productId));
         this.productMapper.updateEntityFromDto(dto, existingProduct);
