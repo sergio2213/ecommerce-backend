@@ -19,6 +19,8 @@ import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -68,10 +70,8 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @GetMapping
-    public ResponseEntity<List<OrderDTO>> getOrdersByCurrentUser(Principal principal) {
-        Long userId = this.userService.getUserByUsername(principal.getName())
-            .orElseThrow(() -> new NoSuchElementException("User not found")).getId();
-        List<OrderDTO> orders = this.orderService.getOrdersDTOByUserId(userId);
+    public ResponseEntity<List<OrderDTO>> getOrdersByCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        List<OrderDTO> orders = this.orderService.getOrdersDTOByUsername(userDetails.getUsername());
         return ResponseEntity.ok(orders);
     }
     

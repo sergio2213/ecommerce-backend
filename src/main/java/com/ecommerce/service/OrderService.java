@@ -87,4 +87,11 @@ public class OrderService {
             .map(order -> toOrderDto(order))
             .toList();
     }
+
+    public List<OrderDTO> getOrdersDTOByUsername(String username) {
+        return this.orderRepository.findByUserUsernameOrderByOrderDateDesc(username)
+            .stream()
+            .map(order -> toOrderDto(order))
+            .toList();
+    }
 }
