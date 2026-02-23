@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 
 import com.ecommerce.dto.AuthRequestDTO;
 import com.ecommerce.dto.AuthResponseDTO;
+import com.ecommerce.dto.RegisterRequestDTO;
+import com.ecommerce.dto.UserDTO;
+import com.ecommerce.model.User;
 import com.ecommerce.security.JpaUserDetailsService;
 import com.ecommerce.security.jwt.JwtService;
 
@@ -18,6 +21,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JpaUserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final UserService userService;
+    private final CartService cartService;
 
     public AuthResponseDTO login(AuthRequestDTO request) {
         this.authenticationManager.authenticate(
@@ -28,5 +33,15 @@ public class AuthService {
         return AuthResponseDTO.builder()
             .token(token)
             .build();
+    }
+
+    public UserDTO register(RegisterRequestDTO request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(request.getPassword());
+        user.setEmail(request.getEmail());
+        User savedUser = this.userService.saveUser(user);
+        this.cartService.createCartForUser(savedUser);
+        return this.userService.toUserDto(savedUser);
     }
 }

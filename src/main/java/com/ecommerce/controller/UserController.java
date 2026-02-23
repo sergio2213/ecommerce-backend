@@ -1,19 +1,7 @@
 package com.ecommerce.controller;
 
-import com.ecommerce.dto.UserDTO;
-import com.ecommerce.model.User;
-import com.ecommerce.service.CartService;
-import com.ecommerce.service.UserService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,30 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 @Tag(
     name = "Usuarios",
-    description = "Gestión de registro y autenticación de usuarios"
+    description = "Gestión de perfil y datos del usuario autenticado"
 )
 public class UserController {
 
-    private final UserService userService;
-    private final CartService cartService;
-
-    public UserController(UserService userService, CartService cartService) {
-        this.userService = userService;
-        this.cartService = cartService;
-    }
-
-    @Operation(
-        summary = "Registrar un nuevo usuario",
-        description = "Crea un nuevo usuario con rol ROLE_USER y un carrito asociado. No quiere autenticación."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody User user) {
-        User savedUser = this.userService.saveUser(user);
-        this.cartService.createCartForUser(savedUser);
-        return new ResponseEntity<>(userService.toUserDto(savedUser), HttpStatus.CREATED);
-    }
 }
