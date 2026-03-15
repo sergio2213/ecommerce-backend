@@ -26,6 +26,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, status);
     }
 
+    private ResponseEntity<ErrorDetails> buildResponse(HttpStatus status, String message, Map<String, String> validationErrors) {
+        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), status.value(), status.getReasonPhrase(), message, validationErrors);
+        return new ResponseEntity<>(errorDetails, status);
+    }
+
     @ExceptionHandler
     public ResponseEntity<ErrorDetails> handleNoSuchElementException(NoSuchElementException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + ex.getMessage());
@@ -38,11 +43,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorDetails> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
             .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     }
 
     @ExceptionHandler
