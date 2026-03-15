@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.ecommerce.security.JpaUserDetailsService;
+import com.ecommerce.security.handler.CustomAccessDeniedHandler;
+import com.ecommerce.security.handler.CustomAuthenticationEntryPoint;
 import com.ecommerce.security.jwt.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ public class SecurityConfig {
 
     private final JpaUserDetailsService jpaUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,6 +54,9 @@ public class SecurityConfig {
                     // cualquier otra solicitud requiere autenticación
                     .anyRequest().authenticated()
             )
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(this.customAuthenticationEntryPoint)
+                .accessDeniedHandler(this.customAccessDeniedHandler))
             .headers(headers -> headers.frameOptions(t -> t.disable()))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
