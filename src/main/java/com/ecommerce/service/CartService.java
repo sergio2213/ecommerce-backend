@@ -41,9 +41,9 @@ public class CartService {
     }
 
     @Transactional
-    public Optional<CartItemDTO> addProductToCart(Long cartId, Long productId, int quantity) {
-        Optional<Cart> optionalCart = this.cartRepository.findById(cartId);
-        Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found with id: " + cartId));
+    public Optional<CartItemDTO> addProductToCart(Long userId, Long productId, int quantity) {
+        Optional<Cart> optionalCart = this.cartRepository.findByUserId(userId);
+        Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found for user with id: " + userId));
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
         if (product.getStock() == 0) {
@@ -53,8 +53,8 @@ public class CartService {
             throw new IllegalStateException("Insufficient stock for product: " + product.getName());
         }
         CartItem savedItem;
-        Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cartId, productId);
-        if(optionalCartItem.isPresent()) {
+        Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
+        if (optionalCartItem.isPresent()) {
             CartItem existingItem = optionalCartItem.get();
             existingItem.setQuantity(existingItem.getQuantity() + quantity);
             savedItem = this.cartItemRepository.save(existingItem);
@@ -73,7 +73,7 @@ public class CartService {
     }
 
     public Optional<Cart> getCartByUserId(Long userId) {
-        return this.cartRepository.findById(userId);
+        return this.cartRepository.findByUserId(userId);
     }
 
     public Optional<CartDTO> getCartDTOByUserId(Long userId) {

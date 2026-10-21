@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import com.ecommerce.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,9 +45,10 @@ public class CartServiceTest {
     @Mock
     private CartItemMapper cartItemMapper;
 
-    
+
     private Cart testCart;
     private Product availableProduct;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
@@ -57,24 +59,29 @@ public class CartServiceTest {
         this.availableProduct.setId(1L);
         this.availableProduct.setName("Laptop");
         this.availableProduct.setStock(10);
+
+        this.testUser = new User();
+        this.testUser.setId(3L);
+        this.testUser.setUsername("test_user");
+        this.testUser.setEmail("test_user@email.com");
+        this.testUser.setPassword("encrypted password");
+        this.testUser.setCart(testCart);
     }
 
     @Test
     void addProductToCart_Success_ExistingItem() {
-        Long cartId = 1L;
-        Long productId = 10L;
-        Integer quantity = 5;
+        int quantity = 5;
 
         // simulamos las llamadas a los repositorios y servicios
-        when(this.cartRepository.findById(cartId)).thenReturn(Optional.of(this.testCart));
-        when(this.productService.getProductById(productId)).thenReturn(Optional.of(availableProduct));
-        when(this.cartItemRepository.findByCartIdAndProductId(cartId, productId)).thenReturn(Optional.empty()); // no existe el ítem en el carrito
-        
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.productService.getProductById(this.availableProduct.getId())).thenReturn(Optional.of(availableProduct));
+        when(this.cartItemRepository.findByCartIdAndProductId(this.testCart.getId(), this.availableProduct.getId())).thenReturn(Optional.empty()); // no existe el ítem en el carrito
+
         // simulamos la conversión a DTO
         when(this.cartItemMapper.toCartItemDto(any())).thenReturn(new CartItemDTO());
 
         // llamamos al método a testear
-        Optional<CartItemDTO> result = this.cartService.addProductToCart(cartId, productId, quantity);
+        Optional<CartItemDTO> result = this.cartService.addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity);
 
         // verificamos el resultado
         assertTrue(result.isPresent());
@@ -86,19 +93,17 @@ public class CartServiceTest {
     @Test
     void addProductToCart_Failure_ProductOutOfStock() {
         Product productOutOfStock = new Product();
-        productOutOfStock.setId(2L);
+        productOutOfStock.setId(4L);
         productOutOfStock.setName("Phone");
         productOutOfStock.setStock(0);
 
-        Long cartId = 1L;
-        Long productId = 2L;
-        Integer quantity = 1;
+        int quantity = 1;
 
-        when(this.cartRepository.findById(cartId)).thenReturn(Optional.of(this.testCart));
-        when(this.productService.getProductById(productId)).thenReturn(Optional.of(productOutOfStock));
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.productService.getProductById(productOutOfStock.getId())).thenReturn(Optional.of(productOutOfStock));
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            this.cartService.addProductToCart(cartId, productId, quantity);
+            this.cartService.addProductToCart(this.testUser.getId(), productOutOfStock.getId(), quantity);
         });
 
         assertTrue(exception.getMessage().contains("out of stock"));
@@ -108,15 +113,18 @@ public class CartServiceTest {
 
     @Test
     void addProductToCart_Failure_InsufficientStock() {
-        Integer quantity = 15; // mayor que el stock disponible
-        Long cartId = 3L;
-        Long productId = 1L;
+        Product productWithInsufficientStock = new Product();
+        productWithInsufficientStock.setId(4L);
+        productWithInsufficientStock.setName("Phone");
+        productWithInsufficientStock.setStock(1);
 
-        when(this.cartRepository.findById(cartId)).thenReturn(Optional.of(this.testCart));
-        when(this.productService.getProductById(productId)).thenReturn(Optional.of(availableProduct));
+        int quantity = 3; // mayor que el stock disponible
+
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.productService.getProductById(productWithInsufficientStock.getId())).thenReturn(Optional.of(productWithInsufficientStock));
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            this.cartService.addProductToCart(cartId, productId, quantity);
+            this.cartService.addProductToCart(this.testUser.getId(), productWithInsufficientStock.getId(), quantity);
         });
 
         assertTrue(exception.getMessage().contains("Insufficient stock"));

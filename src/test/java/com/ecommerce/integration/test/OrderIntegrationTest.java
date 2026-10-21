@@ -5,9 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.ecommerce.dto.*;
+import com.ecommerce.model.*;
+import com.ecommerce.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +40,8 @@ import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.repository.UserRepository;
 
 @SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {"spring.profiles.active=test"}
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"spring.profiles.active=test"}
 )
 public class OrderIntegrationTest {
 
@@ -52,6 +56,9 @@ public class OrderIntegrationTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @Autowired
     private CartRepository cartRepository;
@@ -72,7 +79,7 @@ public class OrderIntegrationTest {
     private static final String CART_ADD_URL = "/api/carts/add-product";
     private static final String LOGIN_URL = "/api/auth/login";
 
-    private final String USERNAME = "user_normal"; 
+    private final String USERNAME = "user_normal";
     private final String PASSWORD = "12345";
 
     private final int INITIAL_STOCK = 10;
@@ -81,6 +88,7 @@ public class OrderIntegrationTest {
     private String userToken;
 
     private void cleanDatabase() {
+        this.orderItemRepository.deleteAllInBatch();
         this.orderRepository.deleteAllInBatch();
         this.cartItemRepository.deleteAllInBatch();
         this.cartRepository.deleteAllInBatch();
@@ -91,7 +99,7 @@ public class OrderIntegrationTest {
 
     private void createUserRoleAndUser() {
         Role userRole = this.roleRepository.findByName("ROLE_USER").orElseGet(
-            () -> this.roleRepository.save(new Role(null, "ROLE_USER"))
+                () -> this.roleRepository.save(new Role(null, "ROLE_USER"))
         );
         User user = new User();
         user.setUsername(USERNAME);
@@ -99,7 +107,7 @@ public class OrderIntegrationTest {
         user.setEmail("test@test.com");
         user.setRoles(Set.of(userRole));
         this.userRepository.save(user);
-        
+
         Cart cart = new Cart();
         cart.setUser(user);
         this.cartRepository.save(cart);
@@ -120,7 +128,7 @@ public class OrderIntegrationTest {
         Long productId = product.getId();
         addProductToCart(productId, PURCHASE_QUANTITY);
         ResponseEntity<OrderDTO> response = restTemplate
-            .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), OrderDTO.class);
+                .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), OrderDTO.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode(), "El checkout exitoso debe resultar en 201 Created.");
         OrderDTO createdOrder = response.getBody();
         assertNotNull(createdOrder.getId(), "La order creada debe tener un ID");
@@ -144,7 +152,7 @@ public class OrderIntegrationTest {
         productToUpdate.setStock(3);
         this.productRepository.save(productToUpdate);
         ResponseEntity<String> response = restTemplate
-            .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), String.class);
+                .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), String.class);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(0, this.orderRepository.count(), "No debería haberse guardado ninguna orden debido al rollback");
         Product finalProduct = this.productRepository.findById(productId).orElseThrow();
@@ -153,6 +161,34 @@ public class OrderIntegrationTest {
         Cart userCart = this.cartRepository.findByUserId(user.getId()).orElseThrow();
         long itemsInCart = this.cartItemRepository.countByCartId(userCart.getId());
         assertEquals(1, itemsInCart, "El carrito debe seguir con los productos porque el checkout falló");
+    }
+
+    @Test
+    void checkout_AfterDuplicateRegistration_UsesTheCorrectCart() {
+        ResponseEntity<String> responseUserA = register("usuario_a", "a@test.com");
+        assertEquals(HttpStatus.CREATED, responseUserA.getStatusCode());
+        ResponseEntity<String> duplicateRegisterResponse = register("usuario_a", "otro@test.com");
+        assertEquals(HttpStatus.CONFLICT, duplicateRegisterResponse.getStatusCode());
+        ResponseEntity<String> responseUserB = register("usuario_b", "b@test.com");
+        assertEquals(HttpStatus.CREATED, responseUserB.getStatusCode());
+        User userB = this.userRepository.findByUsername("usuario_b").orElseThrow();
+        assertEquals(HttpStatus.CREATED, responseUserB.getStatusCode());
+
+        this.userToken = loginAndGetToken("usuario_b", "12345");
+
+        Product testProduct = createTestProduct("Product Test", 10);
+        addProductToCart(testProduct.getId(), 2);
+
+        assertEquals(1, countItemsOf("usuario_b"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.userToken);
+        ResponseEntity<String> response = this.restTemplate.exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(0, countItemsOf("usuario_b"));
+        List<Order> orders = this.orderRepository.findByUserId(userB.getId());
+        assertEquals(1, orders.size());
+        Product updatedProduct = this.productRepository.findById(testProduct.getId()).orElseThrow();
+        assertEquals(8, updatedProduct.getStock());
     }
 
     private Product createTestProduct(String name, int stock) {
@@ -166,26 +202,38 @@ public class OrderIntegrationTest {
 
     private void addProductToCart(Long productId, Integer quantity) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(this.userToken);;
+        headers.setBearerAuth(this.userToken);
+        ;
         Map<String, Number> params = new HashMap<>();
         params.put("productId", productId);
         params.put("quantity", quantity);
         ResponseEntity<String> response = restTemplate
-            .exchange(
-                CART_ADD_URL + "?productId={productId}&quantity={quantity}",
-                HttpMethod.POST,
-                new HttpEntity<>(headers),
-                String.class,
-                params
-            );
+                .exchange(
+                        CART_ADD_URL + "?productId={productId}&quantity={quantity}",
+                        HttpMethod.POST,
+                        new HttpEntity<>(headers),
+                        String.class,
+                        params
+                );
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Debe poder añadir al carrito antes del checkout");
+    }
+
+    private ResponseEntity<String> register(String username, String email) {
+        RegisterRequestDTO body = new RegisterRequestDTO(username, "12345", email);
+        return restTemplate.postForEntity("/api/auth/register", body, String.class);
     }
 
     private String loginAndGetToken(String username, String password) {
         AuthRequestDTO authRequest = new AuthRequestDTO(username, password);
         ResponseEntity<AuthResponseDTO> authResponse = restTemplate.postForEntity(LOGIN_URL, authRequest, AuthResponseDTO.class);
         assertEquals(HttpStatus.OK, authResponse.getStatusCode());
-        assertNotNull(authResponse.getBody().getToken());
+        assertNotNull(authResponse.getBody());
         return authResponse.getBody().getToken();
+    }
+
+    private long countItemsOf(String username) {
+        User user = this.userRepository.findByUsername(username).orElseThrow();
+        Cart cart = this.cartRepository.findByUserId(user.getId()).orElseThrow();
+        return this.cartItemRepository.countByCartId(cart.getId());
     }
 }

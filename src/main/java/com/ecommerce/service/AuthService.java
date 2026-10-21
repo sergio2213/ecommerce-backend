@@ -14,6 +14,7 @@ import com.ecommerce.security.JpaUserDetailsService;
 import com.ecommerce.security.jwt.JwtService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class AuthService {
             .build();
     }
 
+    @Transactional
     public UserDTO register(RegisterRequestDTO request) {
         User user = new User();
         user.setUsername(request.getUsername());
