@@ -17,8 +17,8 @@ import com.ecommerce.model.Product;
 import com.ecommerce.model.User;
 import com.ecommerce.repository.OrderItemRepository;
 import com.ecommerce.repository.OrderRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
@@ -71,7 +71,7 @@ public class OrderService {
         }
         this.cartService.clearCartItems(cart.getId());
         cart.getCartItems().clear();
-        return savedOrder; 
+        return savedOrder;
     }
 
     public List<Order> getOrdersByUserId(Long userId) {
