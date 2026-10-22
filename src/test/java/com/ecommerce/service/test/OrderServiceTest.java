@@ -90,7 +90,7 @@ public class OrderServiceTest {
         this.testCart.setCartItems(items);
 
         when(this.userService.getUserById(this.testUser.getId())).thenReturn(Optional.of(this.testUser));
-        when(this.cartService.getCartByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.cartService.getCartOrThrow(this.testUser.getId())).thenReturn(this.testCart);
         // mockeamos el guardado de la orden
         when(this.orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);
@@ -147,7 +147,7 @@ public class OrderServiceTest {
 
         when(this.userService.getUserById(this.testUser.getId())).thenReturn(Optional.of(this.testUser));
         
-        when(this.cartService.getCartByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.cartService.getCartOrThrow(this.testUser.getId())).thenReturn(this.testCart);
 
         when(this.orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);

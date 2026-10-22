@@ -42,7 +42,7 @@ public class OrderService {
     @Transactional
     public Order placeOrder(Long userId) {
         User user = this.userService.getUserById(userId).orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
-        Cart cart = this.cartService.getCartByUserId(userId).orElseThrow(() -> new NoSuchElementException("Cart not found for user id: " + userId));
+        Cart cart = this.cartService.getCartOrThrow(userId);
         if (cart.getCartItems().isEmpty()) {
             throw new IllegalStateException("Cannot place order with empty cart for user id: " + userId);
         }

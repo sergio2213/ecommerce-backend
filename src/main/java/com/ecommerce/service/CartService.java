@@ -42,8 +42,7 @@ public class CartService {
 
     @Transactional
     public Optional<CartItemDTO> addProductToCart(Long userId, Long productId, int quantity) {
-        Optional<Cart> optionalCart = this.cartRepository.findByUserId(userId);
-        Cart cart = optionalCart.orElseThrow(() -> new NoSuchElementException("Cart not found for user with id: " + userId));
+        Cart cart = getCartOrThrow(userId);
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
         if (product.getStock() == 0) {
@@ -72,10 +71,6 @@ public class CartService {
         return this.cartRepository.save(cart);
     }
 
-    public Optional<Cart> getCartByUserId(Long userId) {
-        return this.cartRepository.findByUserId(userId);
-    }
-
     public Optional<CartDTO> getCartDTOByUserId(Long userId) {
         return this.cartRepository.findByUserId(userId).map(this::toCartDto);
     }
@@ -87,5 +82,10 @@ public class CartService {
     @Transactional
     public void clearCartItems(Long cartId) {
         this.cartItemRepository.deleteAll(this.cartItemRepository.findByCartId(cartId));
+    }
+
+    public Cart getCartOrThrow(Long userId) {
+        return this.cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException("Cart not found for user with ID: " + userId));
     }
 }

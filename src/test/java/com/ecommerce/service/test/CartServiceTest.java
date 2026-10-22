@@ -2,12 +2,14 @@ package com.ecommerce.service.test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import com.ecommerce.model.User;
@@ -130,5 +132,18 @@ public class CartServiceTest {
         assertTrue(exception.getMessage().contains("Insufficient stock"));
 
         verify(this.cartItemRepository, never()).save(any());
+    }
+
+    @Test
+    void getCartOrThrow_Success_ReturnsCart() {
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        Cart result = this.cartService.getCartOrThrow(this.testUser.getId());
+        assertSame(this.testCart, result);
+    }
+
+    @Test
+    void getCartOrThrow_Failure_CartNotFound() {
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.empty());
+        assertThrows(NoSuchElementException.class, () -> this.cartService.getCartOrThrow(this.testUser.getId()));
     }
 }
