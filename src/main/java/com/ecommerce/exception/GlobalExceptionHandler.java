@@ -65,4 +65,9 @@ public class GlobalExceptionHandler {
         log.warn("Data integrity violation: {}", ex.getMessage());
         return buildResponse(HttpStatus.CONFLICT, "The resource already exists or violates a constraint.");
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
 }

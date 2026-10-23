@@ -11,6 +11,8 @@ import com.ecommerce.model.User;
 import com.ecommerce.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -113,5 +115,23 @@ public class CartIntegrationTest {
 
         assertEquals(0, countItemsOf("usuario_a"));
         assertEquals(1, countItemsOf("usuario_b"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -20})
+    void addToCart_InvalidQuantity_ReturnsBadRequest(int quantity) {
+        ResponseEntity<String> registrationResponse = register("usuario_test", "usuario@test.com");
+        assertEquals(HttpStatus.CREATED, registrationResponse.getStatusCode());
+        String userToken = loginAndGetToken("usuario_test", "12345");
+        assertNotNull(userToken);
+        Product availableProduct = createTestProduct();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userToken);
+
+        ResponseEntity<String> response = this.restTemplate
+                .exchange("/api/carts/add-product?productId={productId}&quantity={quantity}", HttpMethod.POST, new HttpEntity<>(headers), String.class, availableProduct.getId(), quantity);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(0, countItemsOf("usuario_test"));
     }
 }
