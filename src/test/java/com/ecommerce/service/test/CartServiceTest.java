@@ -16,6 +16,8 @@ import com.ecommerce.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -145,5 +147,13 @@ public class CartServiceTest {
     void getCartOrThrow_Failure_CartNotFound() {
         when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.empty());
         assertThrows(NoSuchElementException.class, () -> this.cartService.getCartOrThrow(this.testUser.getId()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -20})
+    void addProductToCart_InvalidQuantity_ThrowsAnException(int quantity) {
+        assertThrows(IllegalArgumentException.class, () -> this.cartService
+                .addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity));
+        verify(this.cartRepository, never()).findByUserId(any(Long.class));
     }
 }

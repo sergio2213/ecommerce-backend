@@ -42,6 +42,9 @@ public class CartService {
 
     @Transactional
     public Optional<CartItemDTO> addProductToCart(Long userId, Long productId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity cannot be zero or negative");
+        }
         Cart cart = getCartOrThrow(userId);
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
