@@ -28,7 +28,7 @@ public class DataLoader {
                 System.out.println("Role USER created");
             }
 
-            Optional<Role> adminRole = roleRepository.findByName("ADMIN_USER");
+            Optional<Role> adminRole = roleRepository.findByName("ROLE_ADMIN");
             if (adminRole.isEmpty()) {
                 roleRepository.save(new Role(null, "ROLE_ADMIN"));
                 System.out.println("Role ADMIN created");
