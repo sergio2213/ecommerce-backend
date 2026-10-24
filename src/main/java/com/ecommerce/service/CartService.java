@@ -51,22 +51,20 @@ public class CartService {
         if (product.getStock() == 0) {
             throw new IllegalStateException("Product is out of stock");
         }
-        if (product.getStock() < quantity) {
-            throw new IllegalStateException("Insufficient stock for product: " + product.getName());
-        }
         CartItem savedItem;
         Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
-        if (optionalCartItem.isPresent()) {
-            CartItem existingItem = optionalCartItem.get();
-            existingItem.setQuantity(existingItem.getQuantity() + quantity);
-            savedItem = this.cartItemRepository.save(existingItem);
-        } else {
+        int totalQuantity = optionalCartItem.map(CartItem::getQuantity).orElse(0) + quantity;
+        if (totalQuantity > product.getStock()) {
+            throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+        }
+        CartItem cartItem = optionalCartItem.orElseGet(() -> {
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setProduct(product);
-            newItem.setQuantity(quantity);
-            savedItem = this.cartItemRepository.save(newItem);
-        }
+            return newItem;
+        });
+        cartItem.setQuantity(totalQuantity);
+        savedItem = this.cartItemRepository.save(cartItem);
         return Optional.of(this.cartItemMapper.toCartItemDto(savedItem));
     }
 

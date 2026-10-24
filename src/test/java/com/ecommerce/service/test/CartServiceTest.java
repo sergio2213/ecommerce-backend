@@ -1,5 +1,6 @@
 package com.ecommerce.service.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.ecommerce.model.CartItem;
 import com.ecommerce.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -155,5 +157,47 @@ public class CartServiceTest {
         assertThrows(IllegalArgumentException.class, () -> this.cartService
                 .addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity));
         verify(this.cartRepository, never()).findByUserId(any(Long.class));
+    }
+
+    @Test
+    void addProductToCart_AccumulatedQuantityExceedsStock_ThrowsAnException() {
+        this.availableProduct.setStock(10);
+        int quantity = 5;
+        CartItem cartItem = new CartItem();
+        cartItem.setId(222L);
+        cartItem.setQuantity(8);
+        cartItem.setProduct(this.availableProduct);
+        cartItem.setCart(this.testCart);
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.productService.getProductById(this.availableProduct.getId())).thenReturn(Optional.of(this.availableProduct));
+        when(this.cartItemRepository
+                .findByCartIdAndProductId(this.testCart.getId(), this.availableProduct.getId())).thenReturn(Optional.of(cartItem));
+
+        assertThrows(IllegalStateException.class, () -> this.cartService
+                .addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity));
+        assertEquals(8, cartItem.getQuantity());
+        verify(this.cartItemRepository, never()).save(any());
+    }
+
+    @Test
+    void addProductToCart_AccumulatedQuantityEqualToAvailableStock_Success() {
+        int quantity = 2;
+        CartItem cartItem = new CartItem();
+        cartItem.setId(99L);
+        cartItem.setCart(this.testCart);
+        this.availableProduct.setStock(10);
+        cartItem.setProduct(this.availableProduct);
+        cartItem.setQuantity(8);
+        when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
+        when(this.productService.getProductById(this.availableProduct.getId())).thenReturn(Optional.of(this.availableProduct));
+        when(this.cartItemRepository
+                .findByCartIdAndProductId(this.testCart.getId(), this.availableProduct.getId())).thenReturn(Optional.of(cartItem));
+        when(this.cartItemRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        when(this.cartItemMapper.toCartItemDto(any(CartItem.class))).thenReturn(new CartItemDTO());
+
+        this.cartService.addProductToCart((this.testUser.getId()), this.availableProduct.getId(), quantity);
+
+        assertEquals(10, cartItem.getQuantity());
+        verify(this.cartItemRepository).save(cartItem);
     }
 }
