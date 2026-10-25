@@ -8,13 +8,11 @@ import com.ecommerce.model.Cart;
 import com.ecommerce.model.Product;
 import com.ecommerce.model.Role;
 import com.ecommerce.model.User;
-import com.ecommerce.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
@@ -23,42 +21,10 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"spring.profiles.active=test"})
-public class CartIntegrationTest {
+public class CartIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    private void cleanDatabase() {
-        this.orderItemRepository.deleteAllInBatch();
-        this.orderRepository.deleteAllInBatch();
-        this.cartItemRepository.deleteAllInBatch();
-        this.cartRepository.deleteAllInBatch();
-        this.productRepository.deleteAllInBatch();
-        this.userRepository.deleteAllInBatch();
-        this.roleRepository.deleteAllInBatch();
-    }
 
     @BeforeEach
     void setUp() {
