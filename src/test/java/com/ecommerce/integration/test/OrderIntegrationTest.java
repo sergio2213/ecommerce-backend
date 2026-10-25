@@ -11,11 +11,9 @@ import java.util.Set;
 
 import com.ecommerce.dto.*;
 import com.ecommerce.model.*;
-import com.ecommerce.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -32,18 +30,8 @@ import com.ecommerce.model.Cart;
 import com.ecommerce.model.Product;
 import com.ecommerce.model.Role;
 import com.ecommerce.model.User;
-import com.ecommerce.repository.CartItemRepository;
-import com.ecommerce.repository.CartRepository;
-import com.ecommerce.repository.OrderRepository;
-import com.ecommerce.repository.ProductRepository;
-import com.ecommerce.repository.RoleRepository;
-import com.ecommerce.repository.UserRepository;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"spring.profiles.active=test"}
-)
-public class OrderIntegrationTest {
+public class OrderIntegrationTest extends BaseIntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -52,28 +40,7 @@ public class OrderIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     private static final String CHECKOUT_URL = "/api/orders/checkout";
     private static final String CART_ADD_URL = "/api/carts/add-product";
@@ -86,16 +53,6 @@ public class OrderIntegrationTest {
     private final int PURCHASE_QUANTITY = 3;
 
     private String userToken;
-
-    private void cleanDatabase() {
-        this.orderItemRepository.deleteAllInBatch();
-        this.orderRepository.deleteAllInBatch();
-        this.cartItemRepository.deleteAllInBatch();
-        this.cartRepository.deleteAllInBatch();
-        this.productRepository.deleteAllInBatch();
-        this.userRepository.deleteAllInBatch();
-        this.roleRepository.deleteAllInBatch();
-    }
 
     private void createUserRoleAndUser() {
         Role userRole = this.roleRepository.findByName("ROLE_USER").orElseGet(

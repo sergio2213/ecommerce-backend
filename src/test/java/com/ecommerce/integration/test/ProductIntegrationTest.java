@@ -14,8 +14,6 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -32,19 +30,8 @@ import com.ecommerce.model.Cart;
 import com.ecommerce.model.Product;
 import com.ecommerce.model.Role;
 import com.ecommerce.model.User;
-import com.ecommerce.repository.CartItemRepository;
-import com.ecommerce.repository.CartRepository;
-import com.ecommerce.repository.OrderItemRepository;
-import com.ecommerce.repository.OrderRepository;
-import com.ecommerce.repository.ProductRepository;
-import com.ecommerce.repository.RoleRepository;
-import com.ecommerce.repository.UserRepository;
 
-@SpringBootTest(
-    webEnvironment = WebEnvironment.RANDOM_PORT,
-    properties = {"spring.profiles.active=test"}
-)
-public class ProductIntegrationTest {
+public class ProductIntegrationTest extends BaseIntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -53,28 +40,7 @@ public class ProductIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
 
     private static final String ADMIN_URL = "/api/products/admin";
     private static final String USER_URL = "/api/products";
@@ -87,16 +53,6 @@ public class ProductIntegrationTest {
 
     private String userToken;
     private String adminToken;
-
-    private void cleanDatabase() {
-        this.orderItemRepository.deleteAllInBatch();
-        this.orderRepository.deleteAllInBatch();
-        this.cartItemRepository.deleteAllInBatch();
-        this.cartRepository.deleteAllInBatch();
-        this.productRepository.deleteAllInBatch();
-        this.userRepository.deleteAllInBatch();
-        this.roleRepository.deleteAllInBatch();
-    }
 
     private void createRolesAndUsers() {
         Role userRole = this.roleRepository.save(new Role(null, "ROLE_USER"));
