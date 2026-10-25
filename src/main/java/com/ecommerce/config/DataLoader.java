@@ -1,5 +1,6 @@
 package com.ecommerce.config;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.boot.CommandLineRunner;
@@ -12,27 +13,16 @@ import com.ecommerce.repository.RoleRepository;
 @Configuration
 public class DataLoader {
 
-    @Bean
-    CommandLineRunner hello() {
-        return args -> {
-            System.out.println("Hello");
-        };
-    }
+    private static final List<String> INITIAL_ROLES = List.of("ROLE_USER", "ROLE_ADMIN");
 
     @Bean
     CommandLineRunner initDatabase(RoleRepository roleRepository) {
         return args -> {
-            Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
-            if (userRole.isEmpty()) {
-                roleRepository.save(new Role(null, "ROLE_USER"));
-                System.out.println("Role USER created");
-            }
-
-            Optional<Role> adminRole = roleRepository.findByName("ROLE_ADMIN");
-            if (adminRole.isEmpty()) {
-                roleRepository.save(new Role(null, "ROLE_ADMIN"));
-                System.out.println("Role ADMIN created");
-            }
+            INITIAL_ROLES.forEach(roleName -> {
+                if (roleRepository.findByName(roleName).isEmpty()) {
+                    roleRepository.save(new Role(null, roleName));
+                }
+            });
         };
     }
 }
