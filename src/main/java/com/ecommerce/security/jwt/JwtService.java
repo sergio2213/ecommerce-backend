@@ -1,11 +1,11 @@
 package com.ecommerce.security.jwt;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +16,24 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY_STRING = "mysecretkey1234567890iiimysecretkey1234567890uuumysecretkey1234567890";
+    private final long jwtExpirationMs;
 
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey key;
 
-    private static final long EXPIRATION_TIME = Duration.ofHours(24).toMillis();
+    public JwtService(
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.expiration}") long jwtExpirationMs
+    ) {
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.jwtExpirationMs = jwtExpirationMs;
+    }
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
             .subject(userDetails.getUsername())
             .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-            .signWith(SECRET_KEY)
+            .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+            .signWith(key)
             .compact();
     }
 
@@ -45,7 +51,7 @@ public class JwtService {
 
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
-            .verifyWith(SECRET_KEY)
+            .verifyWith(key)
             .build()
             .parseSignedClaims(token)
             .getPayload();
