@@ -40,7 +40,7 @@ public class User {
         if (o == this) return true;
         if (!(o instanceof User)) return false;
         User other = (User) o;
-        return this.id != null && other.getId().equals(this.id);
+        return this.id != null && this.id.equals(other.getId());
     }
 
     @Override
