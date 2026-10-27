@@ -32,7 +32,7 @@ public class Product {
         if (o == this) return true;
         if (!(o instanceof Product)) return false;
         Product other = (Product) o;
-        return this.id != null && other.getId().equals(this.id);
+        return this.id != null && this.id.equals(other.getId());
     }
 
     @Override

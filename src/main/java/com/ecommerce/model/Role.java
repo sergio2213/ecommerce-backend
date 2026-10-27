@@ -33,7 +33,7 @@ public class Role {
         if (o == this) return true;
         if (!(o instanceof Role)) return false;
         Role other = (Role) o;
-        return this.id != null && other.getId().equals(this.id);
+        return this.id != null && this.id.equals(other.getId());
     }
 
     @Override
