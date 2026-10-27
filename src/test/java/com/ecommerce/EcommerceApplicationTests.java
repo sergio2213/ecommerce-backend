@@ -1,10 +1,9 @@
 package com.ecommerce;
 
+import com.ecommerce.integration.test.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class EcommerceApplicationTests {
+class EcommerceApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {
