@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorDetails> handleInvalidQuantityException(InvalidQuantityException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }

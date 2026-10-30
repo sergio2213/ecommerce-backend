@@ -16,6 +16,7 @@ import com.ecommerce.model.Product;
 import com.ecommerce.model.User;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.CartRepository;
+import com.ecommerce.exception.InvalidQuantityException;
 
 @Service
 public class CartService {
@@ -43,7 +44,7 @@ public class CartService {
     @Transactional
     public Optional<CartItemDTO> addProductToCart(Long userId, Long productId, int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity cannot be zero or negative");
+            throw new InvalidQuantityException("Quantity cannot be zero or negative");
         }
         Cart cart = getCartOrThrow(userId);
         Optional<Product> optionalProduct = this.productService.getProductById(productId);

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.ecommerce.exception.InvalidQuantityException;
 import com.ecommerce.model.CartItem;
 import com.ecommerce.model.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -154,7 +155,7 @@ public class CartServiceTest {
     @ParameterizedTest
     @ValueSource(ints = {0, -20})
     void addProductToCart_InvalidQuantity_ThrowsAnException(int quantity) {
-        assertThrows(IllegalArgumentException.class, () -> this.cartService
+        assertThrows(InvalidQuantityException.class, () -> this.cartService
                 .addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity));
         verify(this.cartRepository, never()).findByUserId(any(Long.class));
     }
