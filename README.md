@@ -95,7 +95,6 @@ No hace falta definir `JWT_SECRET` para las pruebas: usan el perfil `test`, que 
 
 - Respuestas con DTO y paginación en el listado de productos.
 - Excepciones propias en lugar de reutilizar `IllegalArgumentException`.
-- Manejo de tokens inválidos o vencidos en el filtro de autenticación (responder 401).
 - Base de datos persistente (PostgreSQL) con migraciones (Flyway) y pruebas con Testcontainers.
 - Integración continua con GitHub Actions.
 
