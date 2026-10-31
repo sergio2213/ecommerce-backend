@@ -175,6 +175,17 @@ public class OrderIntegrationTest extends BaseIntegrationTest {
         assertEquals(2, countItemsOf("user_test"));
     }
 
+    @Test
+    void checkout_EmptyCart_ReturnsBadRequest() {
+        User user = this.userRepository.findByUsername(USERNAME).orElseThrow();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.userToken);
+        ResponseEntity<String> response = this.restTemplate
+                .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(0, this.orderRepository.findByUserId(user.getId()).size());
+    }
+
     private Product createTestProduct(String name, int stock) {
         Product testProduct = new Product();
         testProduct.setName(name);
