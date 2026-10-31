@@ -17,6 +17,8 @@ import com.ecommerce.model.Product;
 import com.ecommerce.model.User;
 import com.ecommerce.repository.OrderItemRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.exception.InsufficientStockException;
+import com.ecommerce.exception.EmptyCartException;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -44,7 +46,7 @@ public class OrderService {
         User user = this.userService.getUserById(userId).orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
         Cart cart = this.cartService.getCartOrThrow(userId);
         if (cart.getCartItems().isEmpty()) {
-            throw new IllegalStateException("Cannot place order with empty cart for user id: " + userId);
+            throw new EmptyCartException("Cannot place order with empty cart for user id: " + userId);
         }
         Order order = new Order();
         order.setUser(user);
@@ -57,7 +59,7 @@ public class OrderService {
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new IllegalStateException("Insufficient stock for product id: " + product.getId());
+                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
             }
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(savedOrder);

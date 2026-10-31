@@ -51,11 +51,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorDetails> handleIllegalStateException(IllegalStateException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    @ExceptionHandler
     public ResponseEntity<ErrorDetails> handleBadCredentialsException(BadCredentialsException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password");
     }
@@ -68,6 +63,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<ErrorDetails> handleInvalidQuantityException(InvalidQuantityException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleInsufficientStockException(InsufficientStockException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleProductOutOfStockException(ProductOutOfStockException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleEmptyCartException(EmptyCartException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }

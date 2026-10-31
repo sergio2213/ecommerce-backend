@@ -17,6 +17,8 @@ import com.ecommerce.model.User;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.CartRepository;
 import com.ecommerce.exception.InvalidQuantityException;
+import com.ecommerce.exception.InsufficientStockException;
+import com.ecommerce.exception.ProductOutOfStockException;
 
 @Service
 public class CartService {
@@ -50,13 +52,13 @@ public class CartService {
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
         Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
         if (product.getStock() == 0) {
-            throw new IllegalStateException("Product is out of stock");
+            throw new ProductOutOfStockException("Product is out of stock");
         }
         CartItem savedItem;
         Optional<CartItem> optionalCartItem = this.cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
         int totalQuantity = optionalCartItem.map(CartItem::getQuantity).orElse(0) + quantity;
         if (totalQuantity > product.getStock()) {
-            throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+            throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
         }
         CartItem cartItem = optionalCartItem.orElseGet(() -> {
             CartItem newItem = new CartItem();

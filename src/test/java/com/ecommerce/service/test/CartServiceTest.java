@@ -13,7 +13,9 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.InvalidQuantityException;
+import com.ecommerce.exception.ProductOutOfStockException;
 import com.ecommerce.model.CartItem;
 import com.ecommerce.model.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +111,7 @@ public class CartServiceTest {
         when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
         when(this.productService.getProductById(productOutOfStock.getId())).thenReturn(Optional.of(productOutOfStock));
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+        ProductOutOfStockException exception = assertThrows(ProductOutOfStockException.class, () -> {
             this.cartService.addProductToCart(this.testUser.getId(), productOutOfStock.getId(), quantity);
         });
 
@@ -130,7 +132,7 @@ public class CartServiceTest {
         when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.of(this.testCart));
         when(this.productService.getProductById(productWithInsufficientStock.getId())).thenReturn(Optional.of(productWithInsufficientStock));
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+        InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> {
             this.cartService.addProductToCart(this.testUser.getId(), productWithInsufficientStock.getId(), quantity);
         });
 
@@ -174,7 +176,7 @@ public class CartServiceTest {
         when(this.cartItemRepository
                 .findByCartIdAndProductId(this.testCart.getId(), this.availableProduct.getId())).thenReturn(Optional.of(cartItem));
 
-        assertThrows(IllegalStateException.class, () -> this.cartService
+        assertThrows(InsufficientStockException.class, () -> this.cartService
                 .addProductToCart(this.testUser.getId(), this.availableProduct.getId(), quantity));
         assertEquals(8, cartItem.getQuantity());
         verify(this.cartItemRepository, never()).save(any());
