@@ -80,4 +80,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDetails> handleProductOutOfStockException(ProductOutOfStockException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleEmptyCartException(EmptyCartException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
 }
