@@ -148,6 +148,33 @@ public class OrderIntegrationTest extends BaseIntegrationTest {
         assertEquals(8, updatedProduct.getStock());
     }
 
+    @Test
+    void checkout_InsufficientStockOnSecondItem_RollsBackWholeOrder() {
+        Product productA = createTestProduct("Product A", 2);
+        Product productB = createTestProduct("Product B", 30);
+        assertEquals(2, this.productRepository.count());
+        register("user_test", "user_test@test.com");
+        User user = this.userRepository.findByUsername("user_test").orElseThrow();
+        this.userToken = loginAndGetToken(user.getUsername(), "12345");
+        addProductToCart(productA.getId(), 2);
+        addProductToCart(productB.getId(), 10);
+        assertEquals(2, countItemsOf("user_test"));
+        productB.setStock(1);
+        Product updatedProductB = this.productRepository.save(productB);
+        assertEquals(1, updatedProductB.getStock());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.userToken);
+        ResponseEntity<String> response = this.restTemplate
+                .exchange(CHECKOUT_URL, HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(0, this.orderRepository.findByUserId(user.getId()).size());
+        Product afterTransactionProductA = this.productRepository.findById(productA.getId()).orElseThrow();
+        Product afterTransactionProductB = this.productRepository.findById(productB.getId()).orElseThrow();
+        assertEquals(2, afterTransactionProductA.getStock());
+        assertEquals(1, afterTransactionProductB.getStock());
+        assertEquals(2, countItemsOf("user_test"));
+    }
+
     private Product createTestProduct(String name, int stock) {
         Product testProduct = new Product();
         testProduct.setName(name);
