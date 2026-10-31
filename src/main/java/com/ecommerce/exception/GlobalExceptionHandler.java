@@ -70,4 +70,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDetails> handleInvalidQuantityException(InvalidQuantityException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleInsufficientStockException(InsufficientStockException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleProductOutOfStockException(ProductOutOfStockException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
 }

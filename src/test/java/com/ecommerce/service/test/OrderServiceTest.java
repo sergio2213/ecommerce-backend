@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.ecommerce.exception.InsufficientStockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -155,7 +156,7 @@ public class OrderServiceTest {
             return savedOrder;
         });
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> this.orderService.placeOrder(this.testUser.getId()));
+        InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> this.orderService.placeOrder(this.testUser.getId()));
 
         assertTrue(exception.getMessage().contains("Insufficient stock"));
 

@@ -17,6 +17,7 @@ import com.ecommerce.model.Product;
 import com.ecommerce.model.User;
 import com.ecommerce.repository.OrderItemRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.exception.InsufficientStockException;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -57,7 +58,7 @@ public class OrderService {
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new IllegalStateException("Insufficient stock for product id: " + product.getId());
+                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
             }
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(savedOrder);
