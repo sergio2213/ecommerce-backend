@@ -10,9 +10,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.ecommerce.exception.ProductNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,9 +44,9 @@ public class ProductServiceTest {
 
         when(this.productRepository.existsById(productId)).thenReturn(false);
 
-        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> this.productService.deleteProduct(productId));
+        ProductNotFoundException exception = assertThrows(ProductNotFoundException.class, () -> this.productService.deleteProduct(productId));
 
-        assertTrue(exception.getMessage().contains("Product not found"));
+        assertTrue(exception.getMessage().contains("Product not found with ID: " + productId));
 
         verify(this.productRepository, never()).deleteById(productId);
     }
@@ -93,9 +93,9 @@ public class ProductServiceTest {
 
         when(this.productRepository.findById(productId)).thenReturn(Optional.empty());
 
-        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> this.productService.updateProduct(productId, new ProductInputDTO()));
+        ProductNotFoundException exception = assertThrows(ProductNotFoundException.class, () -> this.productService.updateProduct(productId, new ProductInputDTO()));
 
-        assertTrue(exception.getMessage().contains("Product not found"));
+        assertTrue(exception.getMessage().contains("Product not found with ID: " + productId));
         
         verify(this.productMapper, never()).updateEntityFromDto(any(ProductInputDTO.class), any(Product.class));
 

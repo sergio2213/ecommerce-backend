@@ -80,4 +80,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDetails> handleEmptyCartException(EmptyCartException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorDetails> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + ex.getMessage());
+    }
 }

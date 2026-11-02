@@ -19,6 +19,7 @@ import com.ecommerce.repository.CartRepository;
 import com.ecommerce.exception.InvalidQuantityException;
 import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ProductOutOfStockException;
+import com.ecommerce.exception.ProductNotFoundException;
 
 @Service
 public class CartService {
@@ -50,7 +51,7 @@ public class CartService {
         }
         Cart cart = getCartOrThrow(userId);
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
-        Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
         if (product.getStock() == 0) {
             throw new ProductOutOfStockException("Product is out of stock");
         }
