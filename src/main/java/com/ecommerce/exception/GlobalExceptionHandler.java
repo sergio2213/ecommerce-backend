@@ -3,7 +3,6 @@ package com.ecommerce.exception;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -29,11 +28,6 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ErrorDetails> buildResponse(HttpStatus status, String message, Map<String, String> validationErrors) {
         ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), status.value(), status.getReasonPhrase(), message, validationErrors);
         return new ResponseEntity<>(errorDetails, status);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorDetails> handleNoSuchElementException(NoSuchElementException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + ex.getMessage());
     }
 
     @ExceptionHandler
