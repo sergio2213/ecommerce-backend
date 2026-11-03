@@ -1,4 +1,5 @@
 # Proyecto: Backend de E-commerce
+[![CI](https://github.com/sergio2213/ecommerce-backend/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sergio2213/ecommerce-backend/actions/workflows/ci.yml)
 
 Este proyecto es el backend de una aplicación de e-commerce desarrollada con Spring Boot. Se encarga de gestionar la creación de usuarios, productos, carritos de compra y el procesamiento de pedidos.
 
@@ -96,6 +97,5 @@ No hace falta definir `JWT_SECRET` para las pruebas: usan el perfil `test`, que 
 - Respuestas con DTO y paginación en el listado de productos.
 - Excepciones propias en lugar de reutilizar `IllegalArgumentException`.
 - Base de datos persistente (PostgreSQL) con migraciones (Flyway) y pruebas con Testcontainers.
-- Integración continua con GitHub Actions.
 
 Se seguirán añadiendo funcionalidades al proyecto para alcanzar una API de comercio electrónico completa.
