@@ -1,7 +1,6 @@
 package com.ecommerce.controller;
 
 import java.security.Principal;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +14,7 @@ import com.ecommerce.dto.CartDTO;
 import com.ecommerce.dto.CartItemDTO;
 import com.ecommerce.service.CartService;
 import com.ecommerce.service.UserService;
+import com.ecommerce.exception.UserNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -49,7 +49,7 @@ public class CartController {
     })
     @PostMapping("/add-product")
     public ResponseEntity<CartItemDTO> addProductToCart(@RequestParam Long productId, @RequestParam(defaultValue = "1") int quantity, Principal principal) {
-        Long userId = this.userService.getUserByUsername(principal.getName()).orElseThrow(() -> new NoSuchElementException("User not found")).getId();
+        Long userId = this.userService.getUserByUsername(principal.getName()).orElseThrow(() -> new UserNotFoundException("User not found")).getId();
         Optional<CartItemDTO> result = this.cartService.addProductToCart(userId, productId, quantity);
         return result.map(ResponseEntity::ok).orElse(ResponseEntity.internalServerError().build());
     }

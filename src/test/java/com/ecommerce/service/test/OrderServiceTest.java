@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.ecommerce.exception.EmptyCartException;
 import com.ecommerce.exception.InsufficientStockException;
+import com.ecommerce.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -177,6 +178,16 @@ public class OrderServiceTest {
         when(this.cartService.getCartOrThrow(this.testUser.getId())).thenReturn(this.testCart);
         assertThrows(EmptyCartException.class, () -> this.orderService.placeOrder(this.testUser.getId()));
         verify(this.orderRepository, never()).save(any());
+    }
+
+    @Test
+    void placeOrder_UserNotFound_ThrowsUserNotFoundException() {
+        long nonExistentUserId = 999L;
+        when(this.userService.getUserById(nonExistentUserId)).thenReturn(Optional.empty());
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> this.orderService.placeOrder(nonExistentUserId));
+        assertTrue(exception.getMessage().contains("User not found with id: " + nonExistentUserId));
+        verify(this.orderRepository, never()).save(any());
+        verify(this.cartService, never()).getCartOrThrow(any());
     }
 
 }
