@@ -43,7 +43,7 @@ public class CartController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Producto añadido al carrito exitosamente."),
-        @ApiResponse(responseCode = "400", description = "Fallo de lógica de negocio (ej. producto no existe, stock insuficiente)."),
+        @ApiResponse(responseCode = "404", description = "Fallo de lógica de negocio (ej. producto no existe, stock insuficiente)."),
         @ApiResponse(responseCode = "401", description = "No autenticado. Faltan credenciales."),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
