@@ -15,16 +15,21 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CartIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
@@ -99,5 +104,41 @@ public class CartIntegrationTest extends BaseIntegrationTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(0, countItemsOf("usuario_test"));
+    }
+
+    @Test
+    void addProductToCart_ProductNotFound_ReturnsNotFound() {
+        register("test_user", "test_user@test.com");
+        String token = loginAndGetToken("test_user", "12345");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        Long nonExistentProductId = 999_999L;
+
+        ResponseEntity<String> response = this.restTemplate
+                .exchange("/api/carts/add-product?productId={productId}&quantity={quantity}", HttpMethod.POST, new HttpEntity<>(headers), String.class, nonExistentProductId, 2);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Product not found with id: " + nonExistentProductId));
+    }
+
+    @Test
+    void addProductToCart_CartNotFound_ReturnsNotFound() {
+        User newUser = new User();
+        newUser.setUsername("test_user");
+        newUser.setPassword(this.passwordEncoder.encode("12345"));
+        newUser.setEmail("test_user@test.com");
+        User savedUser = this.userRepository.save(newUser);
+        Product testProduct = createTestProduct();
+        String token = loginAndGetToken("test_user", "12345");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        ResponseEntity<String> response = this.restTemplate
+                .exchange("/api/carts/add-product?productId={productId}&quantity={quantity}", HttpMethod.POST, new HttpEntity<>(headers), String.class, testProduct.getId(), 2);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Cart not found for user with ID: " + savedUser.getId()));
     }
 }

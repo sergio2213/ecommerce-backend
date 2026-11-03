@@ -7,6 +7,7 @@ import com.ecommerce.dto.OrderDTO;
 import com.ecommerce.model.Order;
 import com.ecommerce.service.OrderService;
 import com.ecommerce.service.UserService;
+import com.ecommerce.exception.UserNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +54,7 @@ public class OrderController {
     @PostMapping("/checkout")
     public ResponseEntity<OrderDTO> placeOrder(Principal principal) {
         Long userId = this.userService.getUserByUsername(principal.getName())
-            .orElseThrow(() -> new NoSuchElementException("User not found")).getId();
+            .orElseThrow(() -> new UserNotFoundException("User not found")).getId();
         Order newOrder = this.orderService.placeOrder(userId);
         OrderDTO newOrderDTO = this.orderService.toOrderDto(newOrder);
         return new ResponseEntity<>(newOrderDTO, HttpStatus.CREATED);

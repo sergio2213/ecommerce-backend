@@ -3,8 +3,8 @@ package com.ecommerce.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
+import com.ecommerce.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.dto.OrderDTO;
@@ -43,7 +43,7 @@ public class OrderService {
 
     @Transactional
     public Order placeOrder(Long userId) {
-        User user = this.userService.getUserById(userId).orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
+        User user = this.userService.getUserById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         Cart cart = this.cartService.getCartOrThrow(userId);
         if (cart.getCartItems().isEmpty()) {
             throw new EmptyCartException("Cannot place order with empty cart for user id: " + userId);

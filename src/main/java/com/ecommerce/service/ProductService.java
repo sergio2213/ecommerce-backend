@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dto.ProductInputDTO;
+import com.ecommerce.exception.ProductNotFoundException;
 import com.ecommerce.mapper.ProductMapper;
 import com.ecommerce.model.Product;
 import com.ecommerce.repository.ProductRepository;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -36,7 +36,7 @@ public class ProductService {
 
     public void deleteProduct(Long id) {
         if (!this.productRepository.existsById(id)) {
-            throw new NoSuchElementException("Product not found with ID: " + id);
+            throw new ProductNotFoundException("Product not found with ID: " + id);
         }
         this.productRepository.deleteById(id);
     }
@@ -48,7 +48,7 @@ public class ProductService {
 
     @Transactional
     public Product updateProduct(Long productId, ProductInputDTO dto) {
-        Product existingProduct = this.productRepository.findById(productId).orElseThrow(() -> new NoSuchElementException("Product not found with ID: " + productId));
+        Product existingProduct = this.productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
         this.productMapper.updateEntityFromDto(dto, existingProduct);
         return this.productRepository.save(existingProduct);
     }

@@ -190,9 +190,43 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.userToken);
         Long nonExistentProductId = 9999L;
-        ResponseEntity<Product> response = restTemplate
-            .exchange(USER_URL + "/" + nonExistentProductId, HttpMethod.GET, new HttpEntity<>(headers), Product.class);
+        ResponseEntity<String> response = restTemplate
+            .exchange(USER_URL + "/" + nonExistentProductId, HttpMethod.GET, new HttpEntity<>(headers), String.class);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "La obtención de un producto inexistente debe resultar en 404 Not Found.");
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Product not found with ID " + nonExistentProductId));
+    }
+
+    @Test
+    void updateProduct_ProductNotFound_ReturnsNotFound() {
+        ProductInputDTO dto = new ProductInputDTO();
+        dto.setName("Product Test");
+        dto.setPrice(new BigDecimal("200.00"));
+        dto.setStock(10);
+        long nonExistentProductId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.adminToken);
+
+        ResponseEntity<String> response = this.restTemplate
+                .exchange(ADMIN_URL + "/" + nonExistentProductId, HttpMethod.PUT, new HttpEntity<>(dto, headers), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Product not found with ID: " + nonExistentProductId));
+    }
+
+    @Test
+    void deleteProduct_ProductNotFound_ReturnsNotFound() {
+        long nonExistentProductId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.adminToken);
+
+        ResponseEntity<String> response = this.restTemplate
+                .exchange(ADMIN_URL + "/" + nonExistentProductId, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Product not found with ID: " + nonExistentProductId));
     }
 
     private Product createProduct(String name, int stock) {

@@ -10,9 +10,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.ecommerce.exception.CartNotFoundException;
 import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.InvalidQuantityException;
 import com.ecommerce.exception.ProductOutOfStockException;
@@ -151,7 +151,8 @@ public class CartServiceTest {
     @Test
     void getCartOrThrow_Failure_CartNotFound() {
         when(this.cartRepository.findByUserId(this.testUser.getId())).thenReturn(Optional.empty());
-        assertThrows(NoSuchElementException.class, () -> this.cartService.getCartOrThrow(this.testUser.getId()));
+        CartNotFoundException exception = assertThrows(CartNotFoundException.class, () -> this.cartService.getCartOrThrow(this.testUser.getId()));
+        assertTrue(exception.getMessage().contains("Cart not found for user with ID: " + this.testUser.getId()));
     }
 
     @ParameterizedTest

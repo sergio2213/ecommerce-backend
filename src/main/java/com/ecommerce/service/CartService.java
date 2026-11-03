@@ -1,6 +1,5 @@
 package com.ecommerce.service;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -19,6 +18,8 @@ import com.ecommerce.repository.CartRepository;
 import com.ecommerce.exception.InvalidQuantityException;
 import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ProductOutOfStockException;
+import com.ecommerce.exception.ProductNotFoundException;
+import com.ecommerce.exception.CartNotFoundException;
 
 @Service
 public class CartService {
@@ -50,7 +51,7 @@ public class CartService {
         }
         Cart cart = getCartOrThrow(userId);
         Optional<Product> optionalProduct = this.productService.getProductById(productId);
-        Product product = optionalProduct.orElseThrow(() -> new NoSuchElementException("Product not found with id: " + productId));
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
         if (product.getStock() == 0) {
             throw new ProductOutOfStockException("Product is out of stock");
         }
@@ -90,6 +91,6 @@ public class CartService {
 
     public Cart getCartOrThrow(Long userId) {
         return this.cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("Cart not found for user with ID: " + userId));
+                .orElseThrow(() -> new CartNotFoundException("Cart not found for user with ID: " + userId));
     }
 }
