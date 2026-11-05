@@ -3,7 +3,6 @@ package com.ecommerce.controller;
 import com.ecommerce.dto.ProductDTO;
 import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.exception.ProductNotFoundException;
-import com.ecommerce.model.Product;
 import com.ecommerce.service.ProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -112,7 +111,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @DeleteMapping("/admin/{id}")
-    public ResponseEntity<Product> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         this.productService.deleteProduct(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
