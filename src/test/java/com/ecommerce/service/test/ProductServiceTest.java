@@ -79,15 +79,22 @@ public class ProductServiceTest {
 
         when(this.productMapper.toEntity(productInputDTO)).thenReturn(productToSave);
         when(this.productRepository.save(productToSave)).thenReturn(savedProduct);
+        ProductDTO savedProductDto = new ProductDTO();
+        savedProductDto.setId(savedProduct.getId());
+        savedProductDto.setName(savedProduct.getName());
+        savedProductDto.setDescription(savedProduct.getDescription());
+        savedProductDto.setStock(savedProduct.getStock());
+        savedProductDto.setPrice(savedProduct.getPrice());
+        when(this.productMapper.toDto(savedProduct)).thenReturn(savedProductDto);
 
-        Product result = this.productService.createProduct(productInputDTO);
+        ProductDTO result = this.productService.createProduct(productInputDTO);
 
         verify(this.productMapper, times(1)).toEntity(productInputDTO);
 
         verify(this.productRepository, times(1)).save(any(Product.class));
 
         assertNotNull(result);
-        assertTrue(result.getId().equals(25L));
+        assertEquals(savedProductDto, result);
     }
 
     @Test
@@ -134,19 +141,22 @@ public class ProductServiceTest {
         when(this.productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
 
         when(this.productRepository.save(existingProduct)).thenReturn(updatedProduct);
+        ProductDTO expectedDto = new ProductDTO();
+        expectedDto.setId(updatedProduct.getId());
+        expectedDto.setName(updatedProduct.getName());
+        expectedDto.setDescription(updatedProduct.getDescription());
+        expectedDto.setStock(updatedProduct.getStock());
+        expectedDto.setPrice(updatedProduct.getPrice());
+        when(this.productMapper.toDto(updatedProduct)).thenReturn(expectedDto);
 
-        Product result = this.productService.updateProduct(productId, productInputDTO);
+        ProductDTO result = this.productService.updateProduct(productId, productInputDTO);
 
         verify(this.productMapper, times(1)).updateEntityFromDto(any(ProductInputDTO.class), any(Product.class));
 
         verify(this.productRepository, times(1)).save(any(Product.class));
 
         assertNotNull(result);
-        assertTrue(result.getId().equals(productId));
-        assertTrue(result.getDescription().equals(productInputDTO.getDescription()));
-        assertTrue(result.getName().equals(productInputDTO.getName()));
-        assertTrue(result.getPrice().equals(productInputDTO.getPrice()));
-        assertTrue(result.getStock().equals(productInputDTO.getStock()));
+        assertEquals(expectedDto, result);
     }
 
     @Test

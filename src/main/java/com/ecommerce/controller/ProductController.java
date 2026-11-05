@@ -46,8 +46,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PostMapping("/admin/new")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
-        Product savedProduct = this.productService.createProduct(productInputDTO);
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
+        ProductDTO savedProduct = this.productService.createProduct(productInputDTO);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 
@@ -94,8 +94,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PutMapping("/admin/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductInputDTO dto) {
-        Product updatedProduct = this.productService.updateProduct(id, dto);
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductInputDTO dto) {
+        ProductDTO updatedProduct = this.productService.updateProduct(id, dto);
         return ResponseEntity.ok(updatedProduct);
     }
 

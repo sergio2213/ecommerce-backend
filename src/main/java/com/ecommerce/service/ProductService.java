@@ -47,15 +47,17 @@ public class ProductService {
         this.productRepository.deleteById(id);
     }
 
-    public Product createProduct(ProductInputDTO dto) {
+    public ProductDTO createProduct(ProductInputDTO dto) {
         Product newProduct = this.productMapper.toEntity(dto);
-        return this.productRepository.save(newProduct);
+        Product savedProduct = this.productRepository.save(newProduct);
+        return this.productMapper.toDto(savedProduct);
     }
 
     @Transactional
-    public Product updateProduct(Long productId, ProductInputDTO dto) {
+    public ProductDTO updateProduct(Long productId, ProductInputDTO dto) {
         Product existingProduct = this.productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
         this.productMapper.updateEntityFromDto(dto, existingProduct);
-        return this.productRepository.save(existingProduct);
+        Product savedProduct = this.productRepository.save(existingProduct);
+        return this.productMapper.toDto(savedProduct);
     }
 }
