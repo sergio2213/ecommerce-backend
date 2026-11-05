@@ -1,5 +1,6 @@
 package com.ecommerce.mapper;
 
+import com.ecommerce.dto.ProductDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -15,5 +16,7 @@ public interface ProductMapper {
 
     @Mapping(target = "id", ignore = true)
     void updateEntityFromDto(ProductInputDTO dto, @MappingTarget Product entity);
+
+    ProductDTO toDto(Product product);
 
 }

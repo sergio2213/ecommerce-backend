@@ -1,5 +1,6 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.ProductDTO;
 import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.exception.ProductNotFoundException;
 import com.ecommerce.mapper.ProductMapper;
@@ -26,12 +27,17 @@ public class ProductService {
         return this.productRepository.save(product);
     }
 
-    public List<Product> getAllProducts() {
-        return this.productRepository.findAll();
+    public List<ProductDTO> getAllProducts() {
+        return this.productRepository.findAll().stream()
+                .map(this.productMapper::toDto).toList();
     }
 
     public Optional<Product> getProductById(Long id) {
         return this.productRepository.findById(id);
+    }
+
+    public Optional<ProductDTO> getProductDTOById(Long id) {
+        return getProductById(id).map(this.productMapper::toDto);
     }
 
     public void deleteProduct(Long id) {

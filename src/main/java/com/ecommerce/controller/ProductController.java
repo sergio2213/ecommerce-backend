@@ -1,5 +1,6 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.ProductDTO;
 import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.exception.ProductNotFoundException;
 import com.ecommerce.model.Product;
@@ -59,8 +60,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = this.productService.getAllProducts();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        List<ProductDTO> products = this.productService.getAllProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
@@ -74,8 +75,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = this.productService.getProductById(id);
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        Optional<ProductDTO> product = this.productService.getProductDTOById(id);
         return product.map(ResponseEntity::ok).orElseThrow(() -> new ProductNotFoundException("Product not found with ID " + id));
     }
 
