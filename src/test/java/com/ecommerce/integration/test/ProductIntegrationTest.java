@@ -137,7 +137,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<ProductDTO> response = restTemplate
             .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), ProductDTO.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("iPhone", product.getName());
+        assertNotNull(response.getBody());
+        assertEquals(product.getName(), response.getBody().getName());
     }
 
     @Test
