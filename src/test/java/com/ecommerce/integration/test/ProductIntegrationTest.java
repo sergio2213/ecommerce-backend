@@ -2,15 +2,15 @@ package com.ecommerce.integration.test;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
+import com.ecommerce.dto.ProductDTO;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +41,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    private static final Set<String> PRODUCT_CONTRACT_FIELDS = Set.of("id", "name", "description", "price", "stock");
 
     private static final String ADMIN_URL = "/api/products/admin";
     private static final String USER_URL = "/api/products";
@@ -96,8 +98,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.userToken);
         ProductInputDTO dto = createProductDTO("Laptop", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), Product.class);
+        ResponseEntity<String> response = restTemplate
+            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), String.class);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "El acceso sin rol ADMIN debe resultar en 403 Forbidden.");
     }
 
@@ -106,10 +108,10 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.adminToken);
         ProductInputDTO dto = createProductDTO("Laptop", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), Product.class);
+        ResponseEntity<ProductDTO> response = restTemplate
+            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), ProductDTO.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Product createdProduct = response.getBody();
+        ProductDTO createdProduct = response.getBody();
         assertAll("Verificación del producto creado",
             () -> assertNotNull(createdProduct.getId(), "El producto creado debe tener un ID asignado"),
             () -> assertEquals("Laptop", createdProduct.getName(), "El nombre del producto creado debe coincidir"),
@@ -132,10 +134,11 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.userToken);
         Product product = createProduct("iPhone", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), Product.class);
+        ResponseEntity<ProductDTO> response = restTemplate
+            .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), ProductDTO.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("iPhone", product.getName());
+        assertNotNull(response.getBody());
+        assertEquals(product.getName(), response.getBody().getName());
     }
 
     @Test
@@ -144,10 +147,10 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         headers.setBearerAuth(this.userToken);
         createProduct("A", 1);
         createProduct("B", 1);
-        ResponseEntity<Product[]> response = restTemplate
-            .exchange(USER_URL, HttpMethod.GET, new HttpEntity<>(headers), Product[].class);
+        ResponseEntity<ProductDTO[]> response = restTemplate
+            .exchange(USER_URL, HttpMethod.GET, new HttpEntity<>(headers), ProductDTO[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode(), "La obtención de la lista de productos debe resultar en 200 OK.");
-        Product[] products = response.getBody();
+        ProductDTO[] products = response.getBody();
         List<String> productNames = Arrays.stream(products)
             .map(p -> p.getName())
             .toList();
@@ -178,8 +181,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         Long productIdToDelete = productToDelete.getId();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.adminToken);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/" + productIdToDelete, HttpMethod.DELETE, new HttpEntity<>(headers), Product.class);
+        ResponseEntity<Void> response = restTemplate
+            .exchange(ADMIN_URL + "/" + productIdToDelete, HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "La eliminación con rol ADMIN debe resultar en 204 No Content.");
         Optional<Product> optionalProduct = this.productRepository.findById(productIdToDelete);
         assertTrue(optionalProduct.isEmpty());
@@ -229,6 +232,89 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         assertTrue(response.getBody().contains("Product not found with ID: " + nonExistentProductId));
     }
 
+    @Test
+    void getAllProducts_ReturnsOnlyContractFields() {
+        Product product = createProduct("Test Product", 10);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.userToken);
+
+        ResponseEntity<JsonNode> response = this.restTemplate
+                .exchange(USER_URL, HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isArray());
+        assertEquals(1, response.getBody().size());
+        JsonNode firstElement = response.getBody().get(0);
+        assertEquals(PRODUCT_CONTRACT_FIELDS, fieldNamesOf(firstElement));
+        assertEquals("Test Product", firstElement.get("name").asText());
+        assertEquals(10, firstElement.get("stock").asInt());
+        assertEquals(0, product.getPrice().compareTo(firstElement.get("price").decimalValue()));
+        assertEquals(product.getId(), firstElement.get("id").asLong());
+        assertEquals(product.getDescription(), firstElement.get("description").asText());
+    }
+
+    @Test
+    void getProductById_ReturnsOnlyContractFields() {
+        Product product = createProduct("Test Product", 10);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.userToken);
+
+        ResponseEntity<JsonNode> response = this.restTemplate
+                .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(PRODUCT_CONTRACT_FIELDS, fieldNamesOf(response.getBody()));
+        assertEquals("Test Product", response.getBody().get("name").asText());
+        assertEquals(10, response.getBody().get("stock").asInt());
+        assertEquals(0, product.getPrice().compareTo(response.getBody().get("price").decimalValue()));
+        assertEquals(product.getId(), response.getBody().get("id").asLong());
+        assertEquals(product.getDescription(), response.getBody().get("description").asText());
+    }
+
+    @Test
+    void createProduct_ReturnsOnlyContractFields() {
+        ProductInputDTO dto = createProductDTO("Test Product", 10);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.adminToken);
+
+        ResponseEntity<JsonNode> response = this.restTemplate
+                .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), JsonNode.class);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(1, this.productRepository.count());
+        Product savedProduct = this.productRepository.findAll().get(0);
+        assertNotNull(response.getBody());
+        assertEquals(PRODUCT_CONTRACT_FIELDS, fieldNamesOf(response.getBody()));
+        assertEquals("Test Product", response.getBody().get("name").asText());
+        assertEquals(10, response.getBody().get("stock").asInt());
+        assertEquals(0, dto.getPrice().compareTo(response.getBody().get("price").decimalValue()));
+        assertEquals(dto.getDescription(), response.getBody().get("description").asText());
+        assertEquals(savedProduct.getId(), response.getBody().get("id").asLong());
+    }
+
+    @Test
+    void updateProduct_ReturnsOnlyContractFields() {
+        Product product = createProduct("Test Product", 10);
+        ProductInputDTO dto = createProductDTO("Test Product", 20);
+        assertNotEquals(product.getStock(), dto.getStock());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.adminToken);
+
+        ResponseEntity<JsonNode> response = this.restTemplate
+                .exchange(ADMIN_URL + "/" + product.getId(), HttpMethod.PUT, new HttpEntity<>(dto, headers), JsonNode.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(PRODUCT_CONTRACT_FIELDS, fieldNamesOf(response.getBody()));
+        assertEquals(dto.getName(), response.getBody().get("name").asText());
+        assertEquals(20, response.getBody().get("stock").asInt());
+        assertEquals(0, dto.getPrice().compareTo(response.getBody().get("price").decimalValue()));
+        assertEquals(product.getId(), response.getBody().get("id").asLong());
+        assertEquals(dto.getDescription(), response.getBody().get("description").asText());
+    }
+
     private Product createProduct(String name, int stock) {
         Product newProduct = new Product();
         newProduct.setName(name);
@@ -253,5 +339,13 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         assertEquals(HttpStatus.OK, authResponse.getStatusCode());
         assertNotNull(authResponse.getBody().getToken());
         return authResponse.getBody().getToken();
+    }
+
+    private Set<String> fieldNamesOf(JsonNode node) {
+        Set<String> names = new HashSet<>();
+        node.fieldNames().forEachRemaining(fieldName -> {
+            names.add(fieldName);
+        });
+        return names;
     }
 }

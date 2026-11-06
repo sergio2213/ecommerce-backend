@@ -1,8 +1,8 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.ProductDTO;
 import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.exception.ProductNotFoundException;
-import com.ecommerce.model.Product;
 import com.ecommerce.service.ProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,8 +45,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PostMapping("/admin/new")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
-        Product savedProduct = this.productService.createProduct(productInputDTO);
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductInputDTO productInputDTO) {
+        ProductDTO savedProduct = this.productService.createProduct(productInputDTO);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 
@@ -59,8 +59,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = this.productService.getAllProducts();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        List<ProductDTO> products = this.productService.getAllProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
@@ -74,8 +74,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = this.productService.getProductById(id);
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        Optional<ProductDTO> product = this.productService.getProductDTOById(id);
         return product.map(ResponseEntity::ok).orElseThrow(() -> new ProductNotFoundException("Product not found with ID " + id));
     }
 
@@ -93,8 +93,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @PutMapping("/admin/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductInputDTO dto) {
-        Product updatedProduct = this.productService.updateProduct(id, dto);
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductInputDTO dto) {
+        ProductDTO updatedProduct = this.productService.updateProduct(id, dto);
         return ResponseEntity.ok(updatedProduct);
     }
 
@@ -111,7 +111,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor.")
     })
     @DeleteMapping("/admin/{id}")
-    public ResponseEntity<Product> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         this.productService.deleteProduct(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

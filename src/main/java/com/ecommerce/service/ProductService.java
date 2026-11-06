@@ -1,5 +1,6 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.ProductDTO;
 import com.ecommerce.dto.ProductInputDTO;
 import com.ecommerce.exception.ProductNotFoundException;
 import com.ecommerce.mapper.ProductMapper;
@@ -26,12 +27,17 @@ public class ProductService {
         return this.productRepository.save(product);
     }
 
-    public List<Product> getAllProducts() {
-        return this.productRepository.findAll();
+    public List<ProductDTO> getAllProducts() {
+        return this.productRepository.findAll().stream()
+                .map(this.productMapper::toDto).toList();
     }
 
     public Optional<Product> getProductById(Long id) {
         return this.productRepository.findById(id);
+    }
+
+    public Optional<ProductDTO> getProductDTOById(Long id) {
+        return getProductById(id).map(this.productMapper::toDto);
     }
 
     public void deleteProduct(Long id) {
@@ -41,15 +47,17 @@ public class ProductService {
         this.productRepository.deleteById(id);
     }
 
-    public Product createProduct(ProductInputDTO dto) {
+    public ProductDTO createProduct(ProductInputDTO dto) {
         Product newProduct = this.productMapper.toEntity(dto);
-        return this.productRepository.save(newProduct);
+        Product savedProduct = this.productRepository.save(newProduct);
+        return this.productMapper.toDto(savedProduct);
     }
 
     @Transactional
-    public Product updateProduct(Long productId, ProductInputDTO dto) {
+    public ProductDTO updateProduct(Long productId, ProductInputDTO dto) {
         Product existingProduct = this.productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
         this.productMapper.updateEntityFromDto(dto, existingProduct);
-        return this.productRepository.save(existingProduct);
+        Product savedProduct = this.productRepository.save(existingProduct);
+        return this.productMapper.toDto(savedProduct);
     }
 }
