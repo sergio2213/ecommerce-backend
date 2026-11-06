@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.util.*;
 
+import com.ecommerce.dto.ProductDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,8 +98,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.userToken);
         ProductInputDTO dto = createProductDTO("Laptop", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), Product.class);
+        ResponseEntity<String> response = restTemplate
+            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), String.class);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "El acceso sin rol ADMIN debe resultar en 403 Forbidden.");
     }
 
@@ -107,10 +108,10 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.adminToken);
         ProductInputDTO dto = createProductDTO("Laptop", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), Product.class);
+        ResponseEntity<ProductDTO> response = restTemplate
+            .exchange(ADMIN_URL + "/new", HttpMethod.POST, new HttpEntity<>(dto, headers), ProductDTO.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Product createdProduct = response.getBody();
+        ProductDTO createdProduct = response.getBody();
         assertAll("Verificación del producto creado",
             () -> assertNotNull(createdProduct.getId(), "El producto creado debe tener un ID asignado"),
             () -> assertEquals("Laptop", createdProduct.getName(), "El nombre del producto creado debe coincidir"),
@@ -133,8 +134,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.userToken);
         Product product = createProduct("iPhone", 10);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), Product.class);
+        ResponseEntity<ProductDTO> response = restTemplate
+            .exchange(USER_URL + "/" + product.getId(), HttpMethod.GET, new HttpEntity<>(headers), ProductDTO.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("iPhone", product.getName());
     }
@@ -145,10 +146,10 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         headers.setBearerAuth(this.userToken);
         createProduct("A", 1);
         createProduct("B", 1);
-        ResponseEntity<Product[]> response = restTemplate
-            .exchange(USER_URL, HttpMethod.GET, new HttpEntity<>(headers), Product[].class);
+        ResponseEntity<ProductDTO[]> response = restTemplate
+            .exchange(USER_URL, HttpMethod.GET, new HttpEntity<>(headers), ProductDTO[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode(), "La obtención de la lista de productos debe resultar en 200 OK.");
-        Product[] products = response.getBody();
+        ProductDTO[] products = response.getBody();
         List<String> productNames = Arrays.stream(products)
             .map(p -> p.getName())
             .toList();
@@ -179,8 +180,8 @@ public class ProductIntegrationTest extends BaseIntegrationTest {
         Long productIdToDelete = productToDelete.getId();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(this.adminToken);
-        ResponseEntity<Product> response = restTemplate
-            .exchange(ADMIN_URL + "/" + productIdToDelete, HttpMethod.DELETE, new HttpEntity<>(headers), Product.class);
+        ResponseEntity<Void> response = restTemplate
+            .exchange(ADMIN_URL + "/" + productIdToDelete, HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "La eliminación con rol ADMIN debe resultar en 204 No Content.");
         Optional<Product> optionalProduct = this.productRepository.findById(productIdToDelete);
         assertTrue(optionalProduct.isEmpty());
